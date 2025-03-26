@@ -5,3 +5,5 @@ ERROR: 2025/03/26 10:15:31 logger.go:35: Movie not found: movie not found
 ERROR: 2025/03/26 10:15:40 logger.go:35: Movie not found: movie not found
 ERROR: 2025/03/26 10:25:47 logger.go:35: Invalid ID format: strconv.Atoi: parsing "null": invalid syntax
 ERROR: 2025/03/26 10:26:30 logger.go:35: Invalid ID format: strconv.Atoi: parsing "null": invalid syntax
+ERROR: 2025/03/26 12:50:55 logger.go:35: Movie not found: movie not found
+ERROR: 2025/03/26 12:52:18 logger.go:35: Movie not found: movie not found
