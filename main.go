@@ -20,7 +20,6 @@ func initializeLogger() *logger.Logger {
 	if err != nil {
 		log.Fatalf("Failed to initialice logger $v", err)
 	}
-	defer logInstance.Close()
 	return logInstance
 }
 
