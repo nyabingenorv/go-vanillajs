@@ -10,3 +10,7 @@ ERROR: 2025/03/26 12:52:18 logger.go:35: Movie not found: movie not found
 ERROR: 2025/03/26 14:29:17 logger.go:35: Failed to decode registration request: EOF
 ERROR: 2025/03/26 14:31:07 logger.go:35: Failed to decode registration request: EOF
 ERROR: 2025/03/26 14:33:02 logger.go:35: Password mismatch for email: test@test.dev: <nil>
+ERROR: 2025/03/26 15:23:10 logger.go:35: Password mismatch for email: test@test.dev: <nil>
+ERROR: 2025/03/26 15:23:32 logger.go:35: Password mismatch for email: test@test.dev: <nil>
+ERROR: 2025/03/26 15:23:42 logger.go:35: Password mismatch for email: test@test.dev: <nil>
+ERROR: 2025/03/26 15:23:59 logger.go:35: User not found for email: test@test.de: <nil>
