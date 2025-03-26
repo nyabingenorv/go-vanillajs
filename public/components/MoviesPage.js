@@ -22,8 +22,6 @@ export class MoviesPage extends HTMLElement {
             ulMovies.innerHTML = "<h3>There are no movies with your search</h3>";
         }        
 
-        //await this.loadGenres();
-
         if (order) this.querySelector("#order").value = order;
         if (genre) this.querySelector("#filter").value = genre;
 

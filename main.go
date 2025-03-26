@@ -45,16 +45,25 @@ func main() {
 	// Initialize Data Repository for Movies
 	movieRepo, err := data.NewMovieRepository(db, logInstance)
 	if err != nil {
-		log.Fatalf(("Failed to initialize repository"))
+		log.Fatalf("Failed to initialize movierepository")
+	}
+
+	// Initialize Account Repository for Users
+	accountRepo, err := data.NewAccountRepository(db, logInstance)
+	if err != nil {
+		log.Fatal("Failed to initialize account repository")
 	}
 
 	movieHandler := handlers.NewMovieHandler(movieRepo, logInstance)
+	accountHandler := handlers.NewAccountHandler(accountRepo, logInstance)
 
 	http.HandleFunc("/api/movies/top/", movieHandler.GetTopMovies)
 	http.HandleFunc("/api/movies/random/", movieHandler.GetRandomMovies)
 	http.HandleFunc("/api/movies/search/", movieHandler.SearchMovies)
 	http.HandleFunc("/api/movies/", movieHandler.GetMovie) // api/movies/140
 	http.HandleFunc("/api/genres/", movieHandler.GetGenres)
+	http.HandleFunc("/api/account/register/", accountHandler.Register)
+	http.HandleFunc("/api/account/authenticate/", accountHandler.Authenticate)
 
 	catchAllClientRoutesHandler := func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./public/index.html")
