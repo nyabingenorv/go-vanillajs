@@ -1,1 +1,7 @@
 ERROR: 2025/03/25 15:05:20 logger.go:35: Hello from the Error system: <nil>
+ERROR: 2025/03/26 10:00:10 logger.go:35: Failed to scan movie row: sql: Scan error on column index 4, name "release_year": converting NULL to int is unsupported
+ERROR: 2025/03/26 10:00:10 logger.go:35: Failed to get movies: sql: Scan error on column index 4, name "release_year": converting NULL to int is unsupported
+ERROR: 2025/03/26 10:15:31 logger.go:35: Movie not found: movie not found
+ERROR: 2025/03/26 10:15:40 logger.go:35: Movie not found: movie not found
+ERROR: 2025/03/26 10:25:47 logger.go:35: Invalid ID format: strconv.Atoi: parsing "null": invalid syntax
+ERROR: 2025/03/26 10:26:30 logger.go:35: Invalid ID format: strconv.Atoi: parsing "null": invalid syntax
