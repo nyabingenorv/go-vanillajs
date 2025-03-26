@@ -48,7 +48,7 @@ export class MovieDetailsPage extends HTMLElement {
     }
 
     connectedCallback() {
-        this.id = 140; // TODO
+        this.id = this.params[0];
         this.render();
     }
 }
