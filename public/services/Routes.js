@@ -1,6 +1,6 @@
 import { HomePage } from "../components/HomePage.js"
 import { MovieDetailsPage } from "../components/MovieDetailsPage.js"
-import { MoviePage } from "../components/MoviePage.js"
+import { MoviesPage } from "../components/MoviesPage.js"
 
 export const routes = [
     {
@@ -14,6 +14,6 @@ export const routes = [
     
     {
         path: "/movies",  // search results
-        component: MoviePage
+        component: MoviesPage
     }
 ]
