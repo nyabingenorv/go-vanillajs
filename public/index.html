@@ -89,6 +89,29 @@
             </ul>
         </section>
     </template>     
+    <template id="template-register">
+        <section>
+            <h2>Register a New Account</h2>
+            <form onsubmit="app.register(event)">
+                <label for="register-name">Name</label>
+                <input id="register-name" type="text" required autocomplete="name">
+
+                <label for="register-email">E-mail</label>
+                <input id="register-email" required type="email" autocomplete="email">
+                
+                <label for="register-password">Password</label>
+                <input id="register-password" type="password" required autocomplete="new-password">
+
+                <label for="register-password-confirmation">Repeat your Password</label>
+                <input id="register-password-confirmation" required type="password">
+                
+                <button>Register</button>
+
+                <p>If you already have an account, please 
+                    <a href="/account/login">log in</a>.</p>
+            </form>
+        </section>
+    </template>
     <footer>
         <p>(C) ReelingIt - FrontendMasters.com</p>
     </footer>
