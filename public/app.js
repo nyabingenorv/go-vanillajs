@@ -84,5 +84,9 @@ window.app = {
             app.showError(errors.join(". "))
         }
     },
+    logout: () => {
+        Store.jwt = null;
+        app.Router.go("/");
+    },
     api: API,
 }
