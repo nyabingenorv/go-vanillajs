@@ -34,6 +34,13 @@ export class MovieDetailsPage extends HTMLElement {
             ulGenres.appendChild(li);
         });
 
+        this.querySelector("#actions #btnFavorites").addEventListener("click", () => {
+            app.saveToCollection(this.movie.id, "favorite")
+        })
+        this.querySelector("#actions #btnWatchlist").addEventListener("click", () => {
+            app.saveToCollection(this.movie.id, "watchlist")
+        })
+
         const ulCast = this.querySelector("#cast");
         ulCast.innerHTML = "";
         this.movie.casting.forEach(actor => {

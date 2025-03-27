@@ -14,3 +14,8 @@ ERROR: 2025/03/26 15:23:10 logger.go:35: Password mismatch for email: test@test.
 ERROR: 2025/03/26 15:23:32 logger.go:35: Password mismatch for email: test@test.dev: <nil>
 ERROR: 2025/03/26 15:23:42 logger.go:35: Password mismatch for email: test@test.dev: <nil>
 ERROR: 2025/03/26 15:23:59 logger.go:35: User not found for email: test@test.de: <nil>
+ERROR: 2025/03/27 10:27:50 logger.go:35: Failed to decode collection request: EOF
+ERROR: 2025/03/27 10:28:02 logger.go:35: Failed to decode collection request: EOF
+ERROR: 2025/03/27 10:28:52 logger.go:35: Failed to decode collection request: EOF
+ERROR: 2025/03/27 10:29:34 logger.go:35: Failed to decode collection request: EOF
+ERROR: 2025/03/27 10:29:44 logger.go:35: Failed to decode collection request: EOF
