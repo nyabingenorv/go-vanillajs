@@ -10,6 +10,7 @@ import (
 	"frontendmasters.com/movies/data"
 	"frontendmasters.com/movies/handlers"
 	"frontendmasters.com/movies/logger"
+	"github.com/go-webauthn/webauthn/webauthn"
 	"github.com/joho/godotenv"
 	_ "github.com/lib/pq"
 )
@@ -74,8 +75,39 @@ func main() {
 	http.Handle("/api/account/save-to-collection/",
 		accountHandler.AuthMiddleware(http.HandlerFunc(accountHandler.SaveToCollection)))
 
+	// Web Authentication - Passkeys
+	// WebAuthn Handlers
+	wconfig := &webauthn.Config{
+		RPDisplayName: "ReelingIt",
+		RPID:          "localhost",
+		RPOrigins:     []string{"http://localhost:8080"},
+	}
+
+	var webAuthnManager *webauthn.WebAuthn
+
+	if webAuthnManager, err = webauthn.New(wconfig); err != nil {
+		logInstance.Error("Error creating WebAuthn", err)
+	}
+
+	if err != nil {
+		logInstance.Error("Error initialing Passkey engine", err)
+	}
+
+	passkeyRepo := data.NewPasskeyRepository(db, *logInstance)
+	webAuthnHandler := handlers.NewWebAuthnHandler(passkeyRepo, logInstance, webAuthnManager)
+	// Needs User Authentication (for passkey registration)
+	http.Handle("/api/passkey/registration-begin",
+		accountHandler.AuthMiddleware(http.HandlerFunc(webAuthnHandler.WebAuthnRegistrationBeginHandler)))
+	http.Handle("/api/passkey/registration-end",
+		accountHandler.AuthMiddleware(http.HandlerFunc(webAuthnHandler.WebAuthnRegistrationEndHandler)))
+	// No need for User Authentication before
+	http.HandleFunc("/api/passkey/authentication-begin", webAuthnHandler.WebAuthnAuthenticationBeginHandler)
+	http.HandleFunc("/api/passkey/authentication-end", webAuthnHandler.WebAuthnAuthenticationEndHandler)
+
+	// Catch All
 	catchAllClientRoutesHandler := func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./public/index.html")
+
 	}
 
 	http.HandleFunc("/movies", catchAllClientRoutesHandler)
