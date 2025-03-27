@@ -19,3 +19,7 @@ ERROR: 2025/03/27 10:28:02 logger.go:35: Failed to decode collection request: EO
 ERROR: 2025/03/27 10:28:52 logger.go:35: Failed to decode collection request: EOF
 ERROR: 2025/03/27 10:29:34 logger.go:35: Failed to decode collection request: EOF
 ERROR: 2025/03/27 10:29:44 logger.go:35: Failed to decode collection request: EOF
+ERROR: 2025/03/27 14:11:00 logger.go:35: Coudln't start a login: Found no credentials for user
+ERROR: 2025/03/27 14:18:22 logger.go:35: Failed to find new user: sql: no rows in result set
+ERROR: 2025/03/27 14:18:22 logger.go:35: Failed to find user: sql: no rows in result set
+ERROR: 2025/03/27 16:02:52 logger.go:35: Couldn't get the cookie for the session: http: named cookie not present

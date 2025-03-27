@@ -5,9 +5,11 @@ import './components/YouTubeEmbed.js'
 import { MovieDetailsPage } from "./components/MovieDetailsPage.js";
 import { Router } from "./services/Router.js";
 import Store from "./services/Store.js";
+import { Passkeys } from "./services/Passkey.js";
 
 window.addEventListener("DOMContentLoaded", event => {
     app.Router.init();
+    navigator.serviceWorker.register("/sw.js");
 });
 
 window.app = {
@@ -110,5 +112,17 @@ window.app = {
         } else {
             app.Router.go("/account/");
         }
-    } 
+    },
+     addNewPasskey: async () => {
+        const username = "testuser";
+        await Passkeys.register(username);
+    },
+    loginWithPasskey: async () => {
+        const username = document.getElementById("login-email").value;
+        if (username.length < 4) {
+            app.showError("To use a passkey, enter your email address first")
+        } else {
+            await Passkeys.authenticate(username);
+        }
+    }        
 }

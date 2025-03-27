@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
 
 	"frontendmasters.com/movies/data"
 	"frontendmasters.com/movies/handlers"
@@ -104,14 +105,24 @@ func main() {
 	http.HandleFunc("/api/passkey/authentication-begin", webAuthnHandler.WebAuthnAuthenticationBeginHandler)
 	http.HandleFunc("/api/passkey/authentication-end", webAuthnHandler.WebAuthnAuthenticationEndHandler)
 
-	// Catch All
 	catchAllClientRoutesHandler := func(w http.ResponseWriter, r *http.Request) {
 		http.ServeFile(w, r, "./public/index.html")
-
 	}
 
+	// SSR for the movie details
+	http.HandleFunc("/movies/", func(w http.ResponseWriter, r *http.Request) {
+		if strings.Count(r.URL.Path, "/") == 2 && strings.HasPrefix(r.URL.Path, "/movies/") {
+			handlers.SSRMovieDetailsHandler(movieRepo, logInstance)(w, r)
+		} else {
+			catchAllClientRoutesHandler(w, r)
+		}
+	})
+
+	// Catch All
 	http.HandleFunc("/movies", catchAllClientRoutesHandler)
-	http.HandleFunc("/movies/", catchAllClientRoutesHandler)
+
+	// http.HandleFunc("/movies/", catchAllClientRoutesHandler)
+
 	http.HandleFunc("/account/", catchAllClientRoutesHandler)
 
 	// Handler for static files (frontend)

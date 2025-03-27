@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="/styles.css">
     <link rel="manifest" href="/app.webmanifest">
     <link rel="icon" href="/images/icon.png">
+    <script src="https://unpkg.com/@simplewebauthn/browser/dist/bundle/index.umd.min.js" defer></script>
     <script src="/app.js" type="module" defer></script>
     <base href="/">
 </head>
@@ -27,8 +28,7 @@
             </form>
         </div>
     </header>
-    <main>          
-    </main>
+    <main></main>
 
     <dialog id="alert-modal">
         <h3>Error</h3>
@@ -117,12 +117,15 @@
             <h2>Log in</h2>
             <form onsubmit="app.login(event)">
                 <label for="login-email">E-mail</label>
-                <input id="login-email" required type="email" autocomplete="email">
+                <input id="login-email" required type="email" 
+                       autocomplete="email webauthn">
                 
                 <label for="login-password">Password</label>
-                <input id="login-password" type="password" required autocomplete="current-password">
+                <input id="login-password" type="password" autocomplete="current-password">
                 
                 <button>Log In</button>
+                <button type="button" onclick="app.loginWithPasskey()">Login with Passkey</button>
+
 
                 <p>If you don't have an account, please 
                     <a href="/account/register">register</a>.</p>
@@ -136,6 +139,7 @@
             <button onclick="app.logout()">Log out</button>
             <button onclick="app.Router.go('/account/favorites')">Your Favorites</button>
             <button onclick="app.Router.go('/account/watchlist')">Your Watchlist</button>
+            <button onclick="app.addNewPasskey()">Add a New Passkey for faster login</button>
         </section>
     </template>
     <template id="template-collection">
