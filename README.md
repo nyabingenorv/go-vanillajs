@@ -1,5 +1,7 @@
 # Build a Fullstack App with Vanilla JS and Go
+
 # Frontend Masters
+
 ## Trainer: Maximiliano Firtman @firt (X) - firt.dev
 
 You can follow along the workshop with instructions delivered by the trainer.
@@ -45,43 +47,43 @@ Create a logger package with a *logger.go* file
 package logger
 
 import (
-	"log"
-	"os"
+ "log"
+ "os"
 )
 
 type Logger struct {
-	infoLogger  *log.Logger
-	errorLogger *log.Logger
-	file        *os.File
+ infoLogger  *log.Logger
+ errorLogger *log.Logger
+ file        *os.File
 }
 
 // NewLogger creates a new logger with output to both file and stdout
 func NewLogger(logFilePath string) (*Logger, error) {
-	file, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return nil, err
-	}
+ file, err := os.OpenFile(logFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+ if err != nil {
+  return nil, err
+ }
 
-	return &Logger{
-		infoLogger:  log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile),
-		errorLogger: log.New(file, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile),
-		file:        file,
-	}, nil
+ return &Logger{
+  infoLogger:  log.New(os.Stdout, "INFO: ", log.Ldate|log.Ltime|log.Lshortfile),
+  errorLogger: log.New(file, "ERROR: ", log.Ldate|log.Ltime|log.Lshortfile),
+  file:        file,
+ }, nil
 }
 
 // Info logs informational messages to stdout
 func (l *Logger) Info(msg string) {
-	l.infoLogger.Printf("%s", msg)
+ l.infoLogger.Printf("%s", msg)
 }
 
 // Error logs error messages to file
 func (l *Logger) Error(msg string, err error) {
-	l.errorLogger.Printf("%s: %v", msg, err)
+ l.errorLogger.Printf("%s: %v", msg, err)
 }
 
 // Close closes the log file
 func (l *Logger) Close() {
-	l.file.Close()
+ l.file.Close()
 }
 ```
 
@@ -89,27 +91,27 @@ Now, change *main.go* with:
 
 ```go
 func main() {
-	// Initialize logger
-	logInstance := initializeLogger()
+ // Initialize logger
+ logInstance := initializeLogger()
 
-	http.Handle("/", http.FileServer(http.Dir("public")))
+ http.Handle("/", http.FileServer(http.Dir("public")))
 
-	// Start server
-	const addr = ":8080"
-	logInstance.Info("Server starting on " + addr)
-	if err := http.ListenAndServe(addr, nil); err != nil {
-		logInstance.Error("Server failed to start", err)
-		log.Fatalf("Server failed: %v", err)
-	}
+ // Start server
+ const addr = ":8080"
+ logInstance.Info("Server starting on " + addr)
+ if err := http.ListenAndServe(addr, nil); err != nil {
+  logInstance.Error("Server failed to start", err)
+  log.Fatalf("Server failed: %v", err)
+ }
 }
 
 func initializeLogger() *logger.Logger {
-	logInstance, err := logger.NewLogger("movie-service.log")
-	if err != nil {
-		log.Fatalf("Failed to initialize logger: %v", err)
-	}
-	defer logInstance.Close()
-	return logInstance
+ logInstance, err := logger.NewLogger("movie-service.log")
+ if err != nil {
+  log.Fatalf("Failed to initialize logger: %v", err)
+ }
+ defer logInstance.Close()
+ return logInstance
 }
 
 ```
@@ -119,47 +121,50 @@ func initializeLogger() *logger.Logger {
 Create the *models* package with the following files:
 
 *genre.go*
+
 ```go
 package models
 
 type Genre struct {
-	ID   int   
-	Name string 
+ ID   int   
+ Name string 
 }
 ```
 
 *actor.go*
+
 ```go
 package models
 
 type Actor struct {
-	ID        int     
-	FirstName string  
-	LastName  string  
-	ImageURL  *string 
+ ID        int     
+ FirstName string  
+ LastName  string  
+ ImageURL  *string 
 }
 
 ```
 
 *movie.go*
+
 ```go
 package models
 
 type Movie struct {
-	ID          int      
-	TMDB_ID     int      
-	Title       string   
-	Tagline     *string  
-	ReleaseYear int      
-	Genres      []Genre  
-	Overview    *string  
-	Score       *float32 
-	Popularity  *float32 
-	Keywords    []string 
-	Language    *string  
-	PosterURL   *string  
-	TrailerURL  *string  
-	Casting     []Actor  
+ ID          int      
+ TMDB_ID     int      
+ Title       string   
+ Tagline     *string  
+ ReleaseYear int      
+ Genres      []Genre  
+ Overview    *string  
+ Score       *float32 
+ Popularity  *float32 
+ Keywords    []string 
+ Language    *string  
+ PosterURL   *string  
+ TrailerURL  *string  
+ Casting     []Actor  
 }
 
 ```
@@ -172,12 +177,12 @@ Create the *handlers* package with a *movies_handlers.go* file.
 package handlers
 
 import (
-	"encoding/json"
-	"net/http"
-	"strconv"
+ "encoding/json"
+ "net/http"
+ "strconv"
 
-	"frontendmasters.com/movies/logger"
-	"frontendmasters.com/movies/models"
+ "frontendmasters.com/movies/logger"
+ "frontendmasters.com/movies/models"
 )
 
 type MovieHandler struct {
@@ -185,49 +190,49 @@ type MovieHandler struct {
 
 // Utility functions
 func (h *MovieHandler) writeJSONResponse(w http.ResponseWriter, data interface{}) error {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		h.logger.Error("Failed to encode response", err)
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		return err
-	}
-	return nil
+ w.Header().Set("Content-Type", "application/json")
+ if err := json.NewEncoder(w).Encode(data); err != nil {
+  h.logger.Error("Failed to encode response", err)
+  http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+  return err
+ }
+ return nil
 }
 
 func (h *MovieHandler) GetTopMovies(w http.ResponseWriter, r *http.Request) {
     movies := []models.Movie{
-		{
-			ID:          1,
-			TMDB_ID:     101,
-			Title:       "The Hacker",
-			ReleaseYear: 2022,
-			Genres:      []models.Genre{{ID: 1, Name: "Thriller"}},
-			Keywords:    []string{"hacking", "cybercrime"},
-			Casting:     []models.Actor{{ID: 1, Name: "Jane Doe"}},
-		},
-		{
-			ID:          2,
-			TMDB_ID:     102,
-			Title:       "Space Dreams",
-			ReleaseYear: 2020,
-			Genres:      []models.Genre{{ID: 2, Name: "Sci-Fi"}},
-			Keywords:    []string{"space", "exploration"},
-			Casting:     []models.Actor{{ID: 2, Name: "John Star"}},
-		},
-		{
-			ID:          3,
-			TMDB_ID:     103,
-			Title:       "The Lost City",
-			ReleaseYear: 2019,
-			Genres:      []models.Genre{{ID: 3, Name: "Adventure"}},
-			Keywords:    []string{"jungle", "treasure"},
-			Casting:     []models.Actor{{ID: 3, Name: "Lara Hunt"}},
-		},
-	}
+  {
+   ID:          1,
+   TMDB_ID:     101,
+   Title:       "The Hacker",
+   ReleaseYear: 2022,
+   Genres:      []models.Genre{{ID: 1, Name: "Thriller"}},
+   Keywords:    []string{"hacking", "cybercrime"},
+   Casting:     []models.Actor{{ID: 1, Name: "Jane Doe"}},
+  },
+  {
+   ID:          2,
+   TMDB_ID:     102,
+   Title:       "Space Dreams",
+   ReleaseYear: 2020,
+   Genres:      []models.Genre{{ID: 2, Name: "Sci-Fi"}},
+   Keywords:    []string{"space", "exploration"},
+   Casting:     []models.Actor{{ID: 2, Name: "John Star"}},
+  },
+  {
+   ID:          3,
+   TMDB_ID:     103,
+   Title:       "The Lost City",
+   ReleaseYear: 2019,
+   Genres:      []models.Genre{{ID: 3, Name: "Adventure"}},
+   Keywords:    []string{"jungle", "treasure"},
+   Casting:     []models.Actor{{ID: 3, Name: "Lara Hunt"}},
+  },
+ }
 
-	if h.writeJSONResponse(w, movies) == nil {
-		h.logger.Info("Successfully served top movies")
-	}
+ if h.writeJSONResponse(w, movies) == nil {
+  h.logger.Info("Successfully served top movies")
+ }
 }
 
 ```
@@ -237,8 +242,8 @@ Now setup the handler in *main.go*
 ```go
     // ...
     movieHandler := handlers.NewMovieHandler {}
-	// Set up routes
-	http.HandleFunc("/api/movies/top", movieHandler.GetTopMovies)
+ // Set up routes
+ http.HandleFunc("/api/movies/top", movieHandler.GetTopMovies)
     // ...
 ```
 
@@ -289,11 +294,11 @@ package data
 import "frontendmasters.com/movies/models"
 
 type MovieStorage interface {
-	GetTopMovies() ([]models.Movie, error)
-	GetRandomMovies() ([]models.Movie, error)
-	GetMovieByID(id int) (models.Movie, error)
-	SearchMoviesByName(name string, order string, genre *int) ([]models.Movie, error)
-	GetAllGenres() ([]models.Genre, error)
+ GetTopMovies() ([]models.Movie, error)
+ GetRandomMovies() ([]models.Movie, error)
+ GetMovieByID(id int) (models.Movie, error)
+ SearchMoviesByName(name string, order string, genre *int) ([]models.Movie, error)
+ GetAllGenres() ([]models.Genre, error)
 }
 ```
 
@@ -309,23 +314,23 @@ Open *main.go* and add this in the *main* function
 
 ```go
     // Load .env file
-	if err := godotenv.Load(); err != nil {
-		log.Printf("No .env file found or failed to load: %v", err)
-	}
+ if err := godotenv.Load(); err != nil {
+  log.Printf("No .env file found or failed to load: %v", err)
+ }
 
-	// Initialize logger
-	logInstance := initializeLogger()
+ // Initialize logger
+ logInstance := initializeLogger()
 
-	// Database connection
-	dbConnStr := os.Getenv("DATABASE_URL")
-	if dbConnStr == "" {
-		log.Fatalf("DATABASE_URL not set in environment")
-	}
-	db, err := sql.Open("postgres", dbConnStr)
-	if err != nil {
-		log.Fatalf("Failed to connect to database: %v", err)
-	}
-	defer db.Close()
+ // Database connection
+ dbConnStr := os.Getenv("DATABASE_URL")
+ if dbConnStr == "" {
+  log.Fatalf("DATABASE_URL not set in environment")
+ }
+ db, err := sql.Open("postgres", dbConnStr)
+ if err != nil {
+  log.Fatalf("Failed to connect to database: %v", err)
+ }
+ defer db.Close()
 ```
 
 ### B4 - Add field metadata to models
@@ -336,20 +341,20 @@ Modify the models to add metadata such as with *models/movie.go*
 package models
 
 type Movie struct {
-	ID          int      `json:"id"`
-	TMDB_ID     int      `json:"tmdb_id,omitempty"`
-	Title       string   `json:"title"`
-	Tagline     *string  `json:"tagline,omitempty"`
-	ReleaseYear int      `json:"release_year"`
-	Genres      []Genre  `json:"genres"`
-	Overview    *string  `json:"overview,omitempty"`
-	Score       *float32 `json:"score,omitempty"`
-	Popularity  *float32 `json:"popularity,omitempty"`
-	Keywords    []string `json:"keywords"`
-	Language    *string  `json:"language,omitempty"`
-	PosterURL   *string  `json:"poster_url,omitempty"`
-	TrailerURL  *string  `json:"trailer_url,omitempty"`
-	Casting     []Actor  `json:"casting"`
+ ID          int      `json:"id"`
+ TMDB_ID     int      `json:"tmdb_id,omitempty"`
+ Title       string   `json:"title"`
+ Tagline     *string  `json:"tagline,omitempty"`
+ ReleaseYear int      `json:"release_year"`
+ Genres      []Genre  `json:"genres"`
+ Overview    *string  `json:"overview,omitempty"`
+ Score       *float32 `json:"score,omitempty"`
+ Popularity  *float32 `json:"popularity,omitempty"`
+ Keywords    []string `json:"keywords"`
+ Language    *string  `json:"language,omitempty"`
+ PosterURL   *string  `json:"poster_url,omitempty"`
+ TrailerURL  *string  `json:"trailer_url,omitempty"`
+ Casting     []Actor  `json:"casting"`
 }
 ```
 
@@ -361,108 +366,108 @@ Create *data/movie_repository.go
 package data
 
 import (
-	"database/sql"
-	"errors"
-	"strconv"
+ "database/sql"
+ "errors"
+ "strconv"
 
-	"frontendmasters.com/movies/logger"
-	"frontendmasters.com/movies/models"
-	_ "github.com/lib/pq"
+ "frontendmasters.com/movies/logger"
+ "frontendmasters.com/movies/models"
+ _ "github.com/lib/pq"
 )
 
 type MovieRepository struct {
-	db     *sql.DB
-	logger *logger.Logger
+ db     *sql.DB
+ logger *logger.Logger
 }
 
 func NewMovieRepository(db *sql.DB, log *logger.Logger) (*MovieRepository, error) {
-	return &MovieRepository{
-		db:     db,
-		logger: log,
-	}, nil
+ return &MovieRepository{
+  db:     db,
+  logger: log,
+ }, nil
 }
 
 const defaultLimit = 20
 
 func (r *MovieRepository) GetTopMovies() ([]models.Movie, error) {
-	// Fetch movies
-	query := `
-		SELECT id, tmdb_id, title, tagline, release_year, overview, score, 
-		       popularity, language, poster_url, trailer_url
-		FROM movies
-		ORDER BY popularity DESC
-		LIMIT $1
-	`
-	return r.getMovies(query)
+ // Fetch movies
+ query := `
+  SELECT id, tmdb_id, title, tagline, release_year, overview, score, 
+         popularity, language, poster_url, trailer_url
+  FROM movies
+  ORDER BY popularity DESC
+  LIMIT $1
+ `
+ return r.getMovies(query)
 }
 
 
 func (r *MovieRepository) getMovies(query string) ([]models.Movie, error) {
-	rows, err := r.db.Query(query, defaultLimit)
-	if err != nil {
-		r.logger.Error("Failed to query movies", err)
-		return nil, err
-	}
-	defer rows.Close()
+ rows, err := r.db.Query(query, defaultLimit)
+ if err != nil {
+  r.logger.Error("Failed to query movies", err)
+  return nil, err
+ }
+ defer rows.Close()
 
-	var movies []models.Movie
-	for rows.Next() {
-		var m models.Movie
-		if err := rows.Scan(
-			&m.ID, &m.TMDB_ID, &m.Title, &m.Tagline, &m.ReleaseYear,
-			&m.Overview, &m.Score, &m.Popularity, &m.Language,
-			&m.PosterURL, &m.TrailerURL,
-		); err != nil {
-			r.logger.Error("Failed to scan movie row", err)
-			return nil, err
-		}
-		movies = append(movies, m)
-	}
+ var movies []models.Movie
+ for rows.Next() {
+  var m models.Movie
+  if err := rows.Scan(
+   &m.ID, &m.TMDB_ID, &m.Title, &m.Tagline, &m.ReleaseYear,
+   &m.Overview, &m.Score, &m.Popularity, &m.Language,
+   &m.PosterURL, &m.TrailerURL,
+  ); err != nil {
+   r.logger.Error("Failed to scan movie row", err)
+   return nil, err
+  }
+  movies = append(movies, m)
+ }
 
-	return movies, nil
+ return movies, nil
 }
 
 var (
-	ErrMovieNotFound = errors.New("movie not found")
+ ErrMovieNotFound = errors.New("movie not found")
 )
 ```
 
 Back in *main.go*, initialize the repository after the database creation
 
 ```go
-	// Initialize repositories
-	movieRepo, err := data.NewMovieRepository(db, logInstance)
-	if err != nil {
-		log.Fatalf("Failed to initialize movie repository: %v", err)
-	}
+ // Initialize repositories
+ movieRepo, err := data.NewMovieRepository(db, logInstance)
+ if err != nil {
+  log.Fatalf("Failed to initialize movie repository: %v", err)
+ }
 ```
 
 Update handlers
 
 ```go
 type MovieHandler struct {
-	storage data.MovieStorage
-	logger  *logger.Logger
+ storage data.MovieStorage
+ logger  *logger.Logger
 }
 
 func (h *MovieHandler) handleStorageError(w http.ResponseWriter, err error, context string) bool {
-	if err != nil {
-		if err == data.ErrMovieNotFound {
-			http.Error(w, context, http.StatusNotFound)
-			return true
-		}
-		h.logger.Error(context, err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return true
-	}
-	return false
+ if err != nil {
+  if err == data.ErrMovieNotFound {
+   http.Error(w, context, http.StatusNotFound)
+   return true
+  }
+  h.logger.Error(context, err)
+  http.Error(w, "Internal server error", http.StatusInternalServerError)
+  return true
+ }
+ return false
 }
 ```
 
 Update handler instance in *main.go* to use the new structure:
 
 ```go
-movieHandler := handlers.NewMovieHandler(movieRepo, logInstance)	
+movieHandler := handlers.NewMovieHandler(movieRepo, logInstance) 
 ```
 
 ### B6 - Finish the Movie Repository
@@ -473,256 +478,256 @@ The final *movie_repository.go* should look like
 package data
 
 import (
-	"database/sql"
-	"errors"
-	"strconv"
+ "database/sql"
+ "errors"
+ "strconv"
 
-	"frontendmasters.com/movies/logger"
-	"frontendmasters.com/movies/models"
-	_ "github.com/lib/pq"
+ "frontendmasters.com/movies/logger"
+ "frontendmasters.com/movies/models"
+ _ "github.com/lib/pq"
 )
 
 type MovieRepository struct {
-	db     *sql.DB
-	logger *logger.Logger
+ db     *sql.DB
+ logger *logger.Logger
 }
 
 func NewMovieRepository(db *sql.DB, log *logger.Logger) (*MovieRepository, error) {
-	return &MovieRepository{
-		db:     db,
-		logger: log,
-	}, nil
+ return &MovieRepository{
+  db:     db,
+  logger: log,
+ }, nil
 }
 
 const defaultLimit = 20
 
 func (r *MovieRepository) GetTopMovies() ([]models.Movie, error) {
-	// Fetch movies
-	query := `
-		SELECT id, tmdb_id, title, tagline, release_year, overview, score, 
-		       popularity, language, poster_url, trailer_url
-		FROM movies
-		ORDER BY popularity DESC
-		LIMIT $1
-	`
-	return r.getMovies(query)
+ // Fetch movies
+ query := `
+  SELECT id, tmdb_id, title, tagline, release_year, overview, score, 
+         popularity, language, poster_url, trailer_url
+  FROM movies
+  ORDER BY popularity DESC
+  LIMIT $1
+ `
+ return r.getMovies(query)
 }
 
 func (r *MovieRepository) GetRandomMovies() ([]models.Movie, error) {
-	// Fetch movies
-	randomQuery := `
-		SELECT id, tmdb_id, title, tagline, release_year, overview, score, 
-		       popularity, language, poster_url, trailer_url
-		FROM movies
-		ORDER BY random()
-		LIMIT $1
-	`
-	return r.getMovies(randomQuery)
+ // Fetch movies
+ randomQuery := `
+  SELECT id, tmdb_id, title, tagline, release_year, overview, score, 
+         popularity, language, poster_url, trailer_url
+  FROM movies
+  ORDER BY random()
+  LIMIT $1
+ `
+ return r.getMovies(randomQuery)
 }
 
 func (r *MovieRepository) getMovies(query string) ([]models.Movie, error) {
-	rows, err := r.db.Query(query, defaultLimit)
-	if err != nil {
-		r.logger.Error("Failed to query movies", err)
-		return nil, err
-	}
-	defer rows.Close()
+ rows, err := r.db.Query(query, defaultLimit)
+ if err != nil {
+  r.logger.Error("Failed to query movies", err)
+  return nil, err
+ }
+ defer rows.Close()
 
-	var movies []models.Movie
-	for rows.Next() {
-		var m models.Movie
-		if err := rows.Scan(
-			&m.ID, &m.TMDB_ID, &m.Title, &m.Tagline, &m.ReleaseYear,
-			&m.Overview, &m.Score, &m.Popularity, &m.Language,
-			&m.PosterURL, &m.TrailerURL,
-		); err != nil {
-			r.logger.Error("Failed to scan movie row", err)
-			return nil, err
-		}
-		movies = append(movies, m)
-	}
+ var movies []models.Movie
+ for rows.Next() {
+  var m models.Movie
+  if err := rows.Scan(
+   &m.ID, &m.TMDB_ID, &m.Title, &m.Tagline, &m.ReleaseYear,
+   &m.Overview, &m.Score, &m.Popularity, &m.Language,
+   &m.PosterURL, &m.TrailerURL,
+  ); err != nil {
+   r.logger.Error("Failed to scan movie row", err)
+   return nil, err
+  }
+  movies = append(movies, m)
+ }
 
-	return movies, nil
+ return movies, nil
 }
 
 func (r *MovieRepository) GetMovieByID(id int) (models.Movie, error) {
-	// Fetch movie
-	query := `
-		SELECT id, tmdb_id, title, tagline, release_year, overview, score, 
-		       popularity, language, poster_url, trailer_url
-		FROM movies
-		WHERE id = $1
-	`
-	row := r.db.QueryRow(query, id)
+ // Fetch movie
+ query := `
+  SELECT id, tmdb_id, title, tagline, release_year, overview, score, 
+         popularity, language, poster_url, trailer_url
+  FROM movies
+  WHERE id = $1
+ `
+ row := r.db.QueryRow(query, id)
 
-	var m models.Movie
-	err := row.Scan(
-		&m.ID, &m.TMDB_ID, &m.Title, &m.Tagline, &m.ReleaseYear,
-		&m.Overview, &m.Score, &m.Popularity, &m.Language,
-		&m.PosterURL, &m.TrailerURL,
-	)
-	if err == sql.ErrNoRows {
-		r.logger.Error("Movie not found", ErrMovieNotFound)
-		return models.Movie{}, ErrMovieNotFound
-	}
-	if err != nil {
-		r.logger.Error("Failed to query movie by ID", err)
-		return models.Movie{}, err
-	}
+ var m models.Movie
+ err := row.Scan(
+  &m.ID, &m.TMDB_ID, &m.Title, &m.Tagline, &m.ReleaseYear,
+  &m.Overview, &m.Score, &m.Popularity, &m.Language,
+  &m.PosterURL, &m.TrailerURL,
+ )
+ if err == sql.ErrNoRows {
+  r.logger.Error("Movie not found", ErrMovieNotFound)
+  return models.Movie{}, ErrMovieNotFound
+ }
+ if err != nil {
+  r.logger.Error("Failed to query movie by ID", err)
+  return models.Movie{}, err
+ }
 
-	// Fetch related data
-	if err := r.fetchMovieRelations(&m); err != nil {
-		return models.Movie{}, err
-	}
+ // Fetch related data
+ if err := r.fetchMovieRelations(&m); err != nil {
+  return models.Movie{}, err
+ }
 
-	return m, nil
+ return m, nil
 }
 
 func (r *MovieRepository) SearchMoviesByName(name string, order string, genre *int) ([]models.Movie, error) {
-	orderBy := "popularity DESC"
-	switch order {
-	case "score":
-		orderBy = "score DESC"
-	case "name":
-		orderBy = "title"
-	case "date":
-		orderBy = "release_year DESC"
-	}
+ orderBy := "popularity DESC"
+ switch order {
+ case "score":
+  orderBy = "score DESC"
+ case "name":
+  orderBy = "title"
+ case "date":
+  orderBy = "release_year DESC"
+ }
 
-	genreFilter := ""
-	if genre != nil {
-		genreFilter = ` AND ((SELECT COUNT(*) FROM movie_genres 
-								WHERE movie_id=movies.id 
-								AND genre_id=` + strconv.Itoa(*genre) + `) = 1) `
-	}
+ genreFilter := ""
+ if genre != nil {
+  genreFilter = ` AND ((SELECT COUNT(*) FROM movie_genres 
+        WHERE movie_id=movies.id 
+        AND genre_id=` + strconv.Itoa(*genre) + `) = 1) `
+ }
 
-	// Fetch movies by name
-	query := `
-		SELECT id, tmdb_id, title, tagline, release_year, overview, score, 
-		       popularity, language, poster_url, trailer_url
-		FROM movies
-		WHERE (title ILIKE $1 OR overview ILIKE $1) ` + genreFilter + `
-		ORDER BY ` + orderBy + `
-		LIMIT $2
-	`
-	rows, err := r.db.Query(query, "%"+name+"%", defaultLimit)
-	if err != nil {
-		r.logger.Error("Failed to search movies by name", err)
-		return nil, err
-	}
-	defer rows.Close()
+ // Fetch movies by name
+ query := `
+  SELECT id, tmdb_id, title, tagline, release_year, overview, score, 
+         popularity, language, poster_url, trailer_url
+  FROM movies
+  WHERE (title ILIKE $1 OR overview ILIKE $1) ` + genreFilter + `
+  ORDER BY ` + orderBy + `
+  LIMIT $2
+ `
+ rows, err := r.db.Query(query, "%"+name+"%", defaultLimit)
+ if err != nil {
+  r.logger.Error("Failed to search movies by name", err)
+  return nil, err
+ }
+ defer rows.Close()
 
-	var movies []models.Movie
-	for rows.Next() {
-		var m models.Movie
-		if err := rows.Scan(
-			&m.ID, &m.TMDB_ID, &m.Title, &m.Tagline, &m.ReleaseYear,
-			&m.Overview, &m.Score, &m.Popularity, &m.Language,
-			&m.PosterURL, &m.TrailerURL,
-		); err != nil {
-			r.logger.Error("Failed to scan movie row", err)
-			return nil, err
-		}
-		movies = append(movies, m)
-	}
+ var movies []models.Movie
+ for rows.Next() {
+  var m models.Movie
+  if err := rows.Scan(
+   &m.ID, &m.TMDB_ID, &m.Title, &m.Tagline, &m.ReleaseYear,
+   &m.Overview, &m.Score, &m.Popularity, &m.Language,
+   &m.PosterURL, &m.TrailerURL,
+  ); err != nil {
+   r.logger.Error("Failed to scan movie row", err)
+   return nil, err
+  }
+  movies = append(movies, m)
+ }
 
-	return movies, nil
+ return movies, nil
 }
 
 func (r *MovieRepository) GetAllGenres() ([]models.Genre, error) {
-	query := `SELECT id, name FROM genres ORDER BY id`
-	rows, err := r.db.Query(query)
-	if err != nil {
-		r.logger.Error("Failed to query all genres", err)
-		return nil, err
-	}
-	defer rows.Close()
+ query := `SELECT id, name FROM genres ORDER BY id`
+ rows, err := r.db.Query(query)
+ if err != nil {
+  r.logger.Error("Failed to query all genres", err)
+  return nil, err
+ }
+ defer rows.Close()
 
-	var genres []models.Genre
-	for rows.Next() {
-		var g models.Genre
-		if err := rows.Scan(&g.ID, &g.Name); err != nil {
-			r.logger.Error("Failed to scan genre row", err)
-			return nil, err
-		}
-		genres = append(genres, g)
-	}
-	return genres, nil
+ var genres []models.Genre
+ for rows.Next() {
+  var g models.Genre
+  if err := rows.Scan(&g.ID, &g.Name); err != nil {
+   r.logger.Error("Failed to scan genre row", err)
+   return nil, err
+  }
+  genres = append(genres, g)
+ }
+ return genres, nil
 }
 
 // fetchMovieRelations fetches genres, actors, and keywords for a movie
 func (r *MovieRepository) fetchMovieRelations(m *models.Movie) error {
-	// Fetch genres
-	genreQuery := `
-		SELECT g.id, g.name 
-		FROM genres g
-		JOIN movie_genres mg ON g.id = mg.genre_id
-		WHERE mg.movie_id = $1
-	`
-	genreRows, err := r.db.Query(genreQuery, m.ID)
-	if err != nil {
-		r.logger.Error("Failed to query genres for movie "+strconv.Itoa(m.ID), err)
-		return err
-	}
-	defer genreRows.Close()
-	for genreRows.Next() {
-		var g models.Genre
-		if err := genreRows.Scan(&g.ID, &g.Name); err != nil {
-			r.logger.Error("Failed to scan genre row", err)
-			return err
-		}
-		m.Genres = append(m.Genres, g)
-	}
+ // Fetch genres
+ genreQuery := `
+  SELECT g.id, g.name 
+  FROM genres g
+  JOIN movie_genres mg ON g.id = mg.genre_id
+  WHERE mg.movie_id = $1
+ `
+ genreRows, err := r.db.Query(genreQuery, m.ID)
+ if err != nil {
+  r.logger.Error("Failed to query genres for movie "+strconv.Itoa(m.ID), err)
+  return err
+ }
+ defer genreRows.Close()
+ for genreRows.Next() {
+  var g models.Genre
+  if err := genreRows.Scan(&g.ID, &g.Name); err != nil {
+   r.logger.Error("Failed to scan genre row", err)
+   return err
+  }
+  m.Genres = append(m.Genres, g)
+ }
 
-	// Fetch actors
-	actorQuery := `
-		SELECT a.id, a.first_name, a.last_name, a.image_url
-		FROM actors a
-		JOIN movie_cast mc ON a.id = mc.actor_id
-		WHERE mc.movie_id = $1
-	`
-	actorRows, err := r.db.Query(actorQuery, m.ID)
-	if err != nil {
-		r.logger.Error("Failed to query actors for movie "+strconv.Itoa(m.ID), err)
-		return err
-	}
-	defer actorRows.Close()
-	for actorRows.Next() {
-		var a models.Actor
-		if err := actorRows.Scan(&a.ID, &a.FirstName, &a.LastName, &a.ImageURL); err != nil {
-			r.logger.Error("Failed to scan actor row", err)
-			return err
-		}
-		m.Casting = append(m.Casting, a)
-	}
+ // Fetch actors
+ actorQuery := `
+  SELECT a.id, a.first_name, a.last_name, a.image_url
+  FROM actors a
+  JOIN movie_cast mc ON a.id = mc.actor_id
+  WHERE mc.movie_id = $1
+ `
+ actorRows, err := r.db.Query(actorQuery, m.ID)
+ if err != nil {
+  r.logger.Error("Failed to query actors for movie "+strconv.Itoa(m.ID), err)
+  return err
+ }
+ defer actorRows.Close()
+ for actorRows.Next() {
+  var a models.Actor
+  if err := actorRows.Scan(&a.ID, &a.FirstName, &a.LastName, &a.ImageURL); err != nil {
+   r.logger.Error("Failed to scan actor row", err)
+   return err
+  }
+  m.Casting = append(m.Casting, a)
+ }
 
-	// Fetch keywords
-	keywordQuery := `
-		SELECT k.word
-		FROM keywords k
-		JOIN movie_keywords mk ON k.id = mk.keyword_id
-		WHERE mk.movie_id = $1
-	`
-	keywordRows, err := r.db.Query(keywordQuery, m.ID)
-	if err != nil {
-		r.logger.Error("Failed to query keywords for movie "+strconv.Itoa(m.ID), err)
-		return err
-	}
-	defer keywordRows.Close()
-	for keywordRows.Next() {
-		var k string
-		if err := keywordRows.Scan(&k); err != nil {
-			r.logger.Error("Failed to scan keyword row", err)
-			return err
-		}
-		m.Keywords = append(m.Keywords, k)
-	}
+ // Fetch keywords
+ keywordQuery := `
+  SELECT k.word
+  FROM keywords k
+  JOIN movie_keywords mk ON k.id = mk.keyword_id
+  WHERE mk.movie_id = $1
+ `
+ keywordRows, err := r.db.Query(keywordQuery, m.ID)
+ if err != nil {
+  r.logger.Error("Failed to query keywords for movie "+strconv.Itoa(m.ID), err)
+  return err
+ }
+ defer keywordRows.Close()
+ for keywordRows.Next() {
+  var k string
+  if err := keywordRows.Scan(&k); err != nil {
+   r.logger.Error("Failed to scan keyword row", err)
+   return err
+  }
+  m.Keywords = append(m.Keywords, k)
+ }
 
-	return nil
+ return nil
 }
 
 var (
-	ErrMovieNotFound = errors.New("movie not found")
+ ErrMovieNotFound = errors.New("movie not found")
 )
 
 ```
@@ -735,133 +740,133 @@ The final *movies_handler.go* file should look like
 package handlers
 
 import (
-	"encoding/json"
-	"net/http"
-	"strconv"
+ "encoding/json"
+ "net/http"
+ "strconv"
 
-	"frontendmasters.com/movies/data"
-	"frontendmasters.com/movies/logger"
-	"frontendmasters.com/movies/models"
+ "frontendmasters.com/movies/data"
+ "frontendmasters.com/movies/logger"
+ "frontendmasters.com/movies/models"
 )
 
 type MovieHandler struct {
-	storage data.MovieStorage
-	logger  *logger.Logger
+ storage data.MovieStorage
+ logger  *logger.Logger
 }
 
 // Utility functions
 func (h *MovieHandler) writeJSONResponse(w http.ResponseWriter, data interface{}) error {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		h.logger.Error("Failed to encode response", err)
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		return err
-	}
-	return nil
+ w.Header().Set("Content-Type", "application/json")
+ if err := json.NewEncoder(w).Encode(data); err != nil {
+  h.logger.Error("Failed to encode response", err)
+  http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+  return err
+ }
+ return nil
 }
 
 func (h *MovieHandler) handleStorageError(w http.ResponseWriter, err error, context string) bool {
-	if err != nil {
-		if err == data.ErrMovieNotFound {
-			http.Error(w, context, http.StatusNotFound)
-			return true
-		}
-		h.logger.Error(context, err)
-		http.Error(w, "Internal server error", http.StatusInternalServerError)
-		return true
-	}
-	return false
+ if err != nil {
+  if err == data.ErrMovieNotFound {
+   http.Error(w, context, http.StatusNotFound)
+   return true
+  }
+  h.logger.Error(context, err)
+  http.Error(w, "Internal server error", http.StatusInternalServerError)
+  return true
+ }
+ return false
 }
 
 func (h *MovieHandler) parseID(w http.ResponseWriter, idStr string) (int, bool) {
-	id, err := strconv.Atoi(idStr)
-	if err != nil {
-		h.logger.Error("Invalid ID format", err)
-		http.Error(w, "Invalid ID", http.StatusBadRequest)
-		return 0, false
-	}
-	return id, true
+ id, err := strconv.Atoi(idStr)
+ if err != nil {
+  h.logger.Error("Invalid ID format", err)
+  http.Error(w, "Invalid ID", http.StatusBadRequest)
+  return 0, false
+ }
+ return id, true
 }
 
 func (h *MovieHandler) GetTopMovies(w http.ResponseWriter, r *http.Request) {
-	movies, err := h.storage.GetTopMovies()
+ movies, err := h.storage.GetTopMovies()
 
-	if h.handleStorageError(w, err, "Failed to get movies") {
-		return
-	}
-	if h.writeJSONResponse(w, movies) == nil {
-		h.logger.Info("Successfully served top movies")
-	}
+ if h.handleStorageError(w, err, "Failed to get movies") {
+  return
+ }
+ if h.writeJSONResponse(w, movies) == nil {
+  h.logger.Info("Successfully served top movies")
+ }
 }
 
 func (h *MovieHandler) GetRandomMovies(w http.ResponseWriter, r *http.Request) {
-	movies, err := h.storage.GetRandomMovies()
-	if h.handleStorageError(w, err, "Failed to get movies") {
-		return
-	}
-	if h.writeJSONResponse(w, movies) == nil {
-		h.logger.Info("Successfully served random movies")
-	}
+ movies, err := h.storage.GetRandomMovies()
+ if h.handleStorageError(w, err, "Failed to get movies") {
+  return
+ }
+ if h.writeJSONResponse(w, movies) == nil {
+  h.logger.Info("Successfully served random movies")
+ }
 }
 
 func (h *MovieHandler) SearchMovies(w http.ResponseWriter, r *http.Request) {
-	query := r.URL.Query().Get("q")
-	order := r.URL.Query().Get("order")
-	genreStr := r.URL.Query().Get("genre")
+ query := r.URL.Query().Get("q")
+ order := r.URL.Query().Get("order")
+ genreStr := r.URL.Query().Get("genre")
 
-	var genre *int
-	if genreStr != "" {
-		genreInt, ok := h.parseID(w, genreStr)
-		if !ok {
-			return
-		}
-		genre = &genreInt
-	}
+ var genre *int
+ if genreStr != "" {
+  genreInt, ok := h.parseID(w, genreStr)
+  if !ok {
+   return
+  }
+  genre = &genreInt
+ }
 
-	var movies []models.Movie
-	var err error
-	if query != "" {
-		movies, err = h.storage.SearchMoviesByName(query, order, genre)
-	}
-	if h.handleStorageError(w, err, "Failed to get movies") {
-		return
-	}
-	if h.writeJSONResponse(w, movies) == nil {
-		h.logger.Info("Successfully served movies")
-	}
+ var movies []models.Movie
+ var err error
+ if query != "" {
+  movies, err = h.storage.SearchMoviesByName(query, order, genre)
+ }
+ if h.handleStorageError(w, err, "Failed to get movies") {
+  return
+ }
+ if h.writeJSONResponse(w, movies) == nil {
+  h.logger.Info("Successfully served movies")
+ }
 }
 
 func (h *MovieHandler) GetMovie(w http.ResponseWriter, r *http.Request) {
-	idStr := r.URL.Path[len("/api/movies/"):]
-	id, ok := h.parseID(w, idStr)
-	if !ok {
-		return
-	}
+ idStr := r.URL.Path[len("/api/movies/"):]
+ id, ok := h.parseID(w, idStr)
+ if !ok {
+  return
+ }
 
-	movie, err := h.storage.GetMovieByID(id)
-	if h.handleStorageError(w, err, "Failed to get movie by ID") {
-		return
-	}
-	if h.writeJSONResponse(w, movie) == nil {
-		h.logger.Info("Successfully served movie with ID: " + idStr)
-	}
+ movie, err := h.storage.GetMovieByID(id)
+ if h.handleStorageError(w, err, "Failed to get movie by ID") {
+  return
+ }
+ if h.writeJSONResponse(w, movie) == nil {
+  h.logger.Info("Successfully served movie with ID: " + idStr)
+ }
 }
 
 func (h *MovieHandler) GetGenres(w http.ResponseWriter, r *http.Request) {
-	genres, err := h.storage.GetAllGenres()
-	if h.handleStorageError(w, err, "Failed to get genres") {
-		return
-	}
-	if h.writeJSONResponse(w, genres) == nil {
-		h.logger.Info("Successfully served genres")
-	}
+ genres, err := h.storage.GetAllGenres()
+ if h.handleStorageError(w, err, "Failed to get genres") {
+  return
+ }
+ if h.writeJSONResponse(w, genres) == nil {
+  h.logger.Info("Successfully served genres")
+ }
 }
 
 func NewMovieHandler(storage data.MovieStorage, log *logger.Logger) *MovieHandler {
-	return &MovieHandler{
-		storage: storage,
-		logger:  log,
-	}
+ return &MovieHandler{
+  storage: storage,
+  logger:  log,
+ }
 }
 ```
 
@@ -870,18 +875,18 @@ func NewMovieHandler(storage data.MovieStorage, log *logger.Logger) *MovieHandle
 In *main.go* all the handlers for the API should look like:
 
 ```go
-	// Initialize handlers
-	movieHandler := handlers.NewMovieHandler(movieRepo, logInstance)
-	// authHandler := handlers.NewAuthHandler(userStorage, jwt, logInstance)
+ // Initialize handlers
+ movieHandler := handlers.NewMovieHandler(movieRepo, logInstance)
+ // authHandler := handlers.NewAuthHandler(userStorage, jwt, logInstance)
 
-	// Set up routes
-	http.HandleFunc("/api/movies/random", movieHandler.GetRandomMovies)
-	http.HandleFunc("/api/movies/top", movieHandler.GetTopMovies)
-	http.HandleFunc("/api/movies/search", movieHandler.SearchMovies)
-	http.HandleFunc("/api/movies/", movieHandler.GetMovie)
-	http.HandleFunc("/api/genres", movieHandler.GetGenres)
-	http.HandleFunc("/api/account/register", movieHandler.GetGenres)
-	http.HandleFunc("/api/account/authenticate", movieHandler.GetGenres)
+ // Set up routes
+ http.HandleFunc("/api/movies/random", movieHandler.GetRandomMovies)
+ http.HandleFunc("/api/movies/top", movieHandler.GetTopMovies)
+ http.HandleFunc("/api/movies/search", movieHandler.SearchMovies)
+ http.HandleFunc("/api/movies/", movieHandler.GetMovie)
+ http.HandleFunc("/api/genres", movieHandler.GetGenres)
+ http.HandleFunc("/api/account/register", movieHandler.GetGenres)
+ http.HandleFunc("/api/account/authenticate", movieHandler.GetGenres)
 ```
 
 ## C-Frontend
@@ -1291,11 +1296,11 @@ export const routes = [
     {
         path: "/account/favorites",
         component: FavoritesPage
-    },	
+    }, 
 {
         path: "/account/watchlist",
         component: WatchlistPage
-    },	
+    }, 
 ]
 ```
 
@@ -1346,8 +1351,8 @@ const Router = {
             pageElement.textContent = "Page not found";
         }       
 
-		document.querySelector("main").innerHTML = "";
-		document.querySelector("main").appendChild(pageElement); 
+  document.querySelector("main").innerHTML = "";
+  document.querySelector("main").appendChild(pageElement); 
     }
 
 }
@@ -1372,32 +1377,33 @@ window.addEventListener("DOMContentLoaded", () => {
 When we refresh the page on dynamic routes, we get a 404, to solve the problem, let's add some new Handlers in our backend, adding them before the file serving at *main.go*:
 
 ```go
-	// Handler catch-all
-	catchAllHandler := func(w http.ResponseWriter, r *http.Request) {
-		http.ServeFile(w, r, "./public/index.html")
-	}
-	http.HandleFunc("/movies", catchAllHandler)
-	http.HandleFunc("/movies/", catchAllHandler)
-	http.HandleFunc("/account/", catchAllHandler)
+ // Handler catch-all
+ catchAllHandler := func(w http.ResponseWriter, r *http.Request) {
+  http.ServeFile(w, r, "./public/index.html")
+ }
+ http.HandleFunc("/movies", catchAllHandler)
+ http.HandleFunc("/movies/", catchAllHandler)
+ http.HandleFunc("/account/", catchAllHandler)
 ```
+
 ### E4 - Animating the transition
 
 At *Router.js* we can remove the last two code lines with this:
 
 ```js
-	function updatePage() {
-		document.querySelector("main").innerHTML = "";
-		document.querySelector("main").appendChild(pageElement); 
-	}
+ function updatePage() {
+  document.querySelector("main").innerHTML = "";
+  document.querySelector("main").appendChild(pageElement); 
+ }
 
-	if (!document.startViewTransition) {
-		updatePage();
-	} else {
-		const oldPage = document.querySelector("main").firstElementChild;
-		if (oldPage) oldPage.style.viewTransitionName = "old";
-		pageElement.style.viewTransitionName = "new";
-		document.startViewTransition( () => updatePage() );
-	}
+ if (!document.startViewTransition) {
+  updatePage();
+ } else {
+  const oldPage = document.querySelector("main").firstElementChild;
+  if (oldPage) oldPage.style.viewTransitionName = "old";
+  pageElement.style.viewTransitionName = "new";
+  document.startViewTransition( () => updatePage() );
+ }
 ```
 
 ### E5 - Error Messages
@@ -1407,9 +1413,9 @@ Add in *index.html*
 ```html
  <!-- Alert Modal -->
 <dialog id="alert-modal">
-	<h3>Error</h3>
-	<p>There was an error loading the page</p>
-	<button class="action-btn" onclick="app.closeError()">OK</button>
+ <h3>Error</h3>
+ <p>There was an error loading the page</p>
+ <button class="action-btn" onclick="app.closeError()">OK</button>
 </dialog>
 ```
 
@@ -1417,17 +1423,17 @@ Then, in *app.js*
 
 ```js
 window.app = { 
-	// ...
+ // ...
     showError: (message = 'There was an error loading the page', goToHome=true) => {
         document.querySelector("#alert-modal").showModal()
-		document.querySelector("#alert-modal p").textContents = message;
+  document.querySelector("#alert-modal p").textContents = message;
         if (goToHome) app.Router.go("/");
         return;
     },
     closeError: () => {
         document.getElementById('alert-modal').close()        
     },
-	// ...
+ // ...
 }
 ```
 
@@ -1527,7 +1533,7 @@ At *app.js* add the following function to app
             app.Router.go(`/movies?q=${keywords}`)
         }
     },
-// ...	
+// ... 
 ```
 
 ### F2 - Connecting the Filter with Genre
@@ -1536,17 +1542,17 @@ Add in *MoviesComponent.js*
 
 ```js
  async loadGenres() {
-	const genres = await API.getGenres();
-	const select = this.querySelector("#filter");
-	select.innerHTML = `
-		<option value=''>Filter by Genre</option>
-	`;
-	genres.forEach(genre => {
-		var option = document.createElement("option");
-		option.value = genre.id;
-		option.textContent = genre.name;
-		select.appendChild(option);
-	})
+ const genres = await API.getGenres();
+ const select = this.querySelector("#filter");
+ select.innerHTML = `
+  <option value=''>Filter by Genre</option>
+ `;
+ genres.forEach(genre => {
+  var option = document.createElement("option");
+  option.value = genre.id;
+  option.textContent = genre.name;
+  select.appendChild(option);
+ })
 }
 ```
 
@@ -1573,7 +1579,6 @@ In *app.js* add the new functions to the app object:
     }
 ```
 
-
 ## G-Authentication
 
 ### G1 - Adding the new Storage
@@ -1584,294 +1589,294 @@ Let's add a new dependency, executing:
 go get "golang.org/x/crypto/bcrypt"
 ```
 
-
 Let's add a new interface in *data/interfaces.go*
 
 ```go
 type AccountStorage interface {
-	Authenticate(string, string) (bool, error)
-	Register(string, string, string) (bool, error)
-	GetAccountDetails(string) (models.User, error)
-	SaveCollection(models.User, int, string) (bool, error)
+ Authenticate(string, string) (bool, error)
+ Register(string, string, string) (bool, error)
+ GetAccountDetails(string) (models.User, error)
+ SaveCollection(models.User, int, string) (bool, error)
 }
 ```
+
 And we create a new implementation at *data/account_repository.go*
 
 ```go
 package data
 
 import (
-	"database/sql"
-	"errors"
-	"time"
+ "database/sql"
+ "errors"
+ "time"
 
-	"frontendmasters.com/movies/logger"
-	"frontendmasters.com/movies/models"
-	_ "github.com/lib/pq"
-	"golang.org/x/crypto/bcrypt"
+ "frontendmasters.com/movies/logger"
+ "frontendmasters.com/movies/models"
+ _ "github.com/lib/pq"
+ "golang.org/x/crypto/bcrypt"
 )
 
 type AccountRepository struct {
-	db     *sql.DB
-	logger *logger.Logger
+ db     *sql.DB
+ logger *logger.Logger
 }
 
 func NewAccountRepository(db *sql.DB, log *logger.Logger) (*AccountRepository, error) {
-	return &AccountRepository{
-		db:     db,
-		logger: log,
-	}, nil
+ return &AccountRepository{
+  db:     db,
+  logger: log,
+ }, nil
 }
 
 func (r *AccountRepository) Register(name, email, password string) (bool, error) {
-	// Validate basic requirements
-	if name == "" || email == "" || password == "" {
-		r.logger.Error("Registration validation failed: missing required fields", nil)
-		return false, ErrRegistrationValidation
-	}
+ // Validate basic requirements
+ if name == "" || email == "" || password == "" {
+  r.logger.Error("Registration validation failed: missing required fields", nil)
+  return false, ErrRegistrationValidation
+ }
 
-	// Check if user already exists
-	var exists bool
-	err := r.db.QueryRow(`
-		SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)
-	`, email).Scan(&exists)
-	if err != nil {
-		r.logger.Error("Failed to check existing user", err)
-		return false, err
-	}
-	if exists {
-		r.logger.Error("User already exists with email: "+email, ErrUserAlreadyExists)
-		return false, ErrUserAlreadyExists
-	}
+ // Check if user already exists
+ var exists bool
+ err := r.db.QueryRow(`
+  SELECT EXISTS(SELECT 1 FROM users WHERE email = $1)
+ `, email).Scan(&exists)
+ if err != nil {
+  r.logger.Error("Failed to check existing user", err)
+  return false, err
+ }
+ if exists {
+  r.logger.Error("User already exists with email: "+email, ErrUserAlreadyExists)
+  return false, ErrUserAlreadyExists
+ }
 
-	// Hash the password
-	hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
-	if err != nil {
-		r.logger.Error("Failed to hash password", err)
-		return false, err
-	}
+ // Hash the password
+ hashedPassword, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+ if err != nil {
+  r.logger.Error("Failed to hash password", err)
+  return false, err
+ }
 
-	// Insert new user
-	query := `
-		INSERT INTO users (name, email, password_hashed, time_created)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id
-	`
-	var userID int
-	err = r.db.QueryRow(
-		query,
-		name,
-		email,
-		string(hashedPassword),
-		time.Now(),
-	).Scan(&userID)
-	if err != nil {
-		r.logger.Error("Failed to register user", err)
-		return false, err
-	}
+ // Insert new user
+ query := `
+  INSERT INTO users (name, email, password_hashed, time_created)
+  VALUES ($1, $2, $3, $4)
+  RETURNING id
+ `
+ var userID int
+ err = r.db.QueryRow(
+  query,
+  name,
+  email,
+  string(hashedPassword),
+  time.Now(),
+ ).Scan(&userID)
+ if err != nil {
+  r.logger.Error("Failed to register user", err)
+  return false, err
+ }
 
-	return true, nil
+ return true, nil
 }
 
 func (r *AccountRepository) Authenticate(email string, password string) (bool, error) {
-	if email == "" || password == "" {
-		r.logger.Error("Authentication validation failed: missing credentials", nil)
-		return false, ErrAuthenticationValidation
-	}
+ if email == "" || password == "" {
+  r.logger.Error("Authentication validation failed: missing credentials", nil)
+  return false, ErrAuthenticationValidation
+ }
 
-	// Fetch user by email
-	var user models.User
-	query := `
-		SELECT id, name, email, password_hashed
-		FROM users 
-		WHERE email = $1 AND time_deleted IS NULL
-	`
-	err := r.db.QueryRow(query, email).Scan(
-		&user.ID,
-		&user.Name,
-		&user.Email,
-		&user.PasswordHashed,
-	)
-	if err == sql.ErrNoRows {
-		r.logger.Error("User not found for email: "+email, nil)
-		return false, ErrAuthenticationValidation
-	}
-	if err != nil {
-		r.logger.Error("Failed to query user for authentication", err)
-		return false, err
-	}
+ // Fetch user by email
+ var user models.User
+ query := `
+  SELECT id, name, email, password_hashed
+  FROM users 
+  WHERE email = $1 AND time_deleted IS NULL
+ `
+ err := r.db.QueryRow(query, email).Scan(
+  &user.ID,
+  &user.Name,
+  &user.Email,
+  &user.PasswordHashed,
+ )
+ if err == sql.ErrNoRows {
+  r.logger.Error("User not found for email: "+email, nil)
+  return false, ErrAuthenticationValidation
+ }
+ if err != nil {
+  r.logger.Error("Failed to query user for authentication", err)
+  return false, err
+ }
 
-	// Verify password
-	err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHashed), []byte(password))
-	if err != nil {
-		r.logger.Error("Password mismatch for email: "+email, nil)
-		return false, ErrAuthenticationValidation
-	}
+ // Verify password
+ err = bcrypt.CompareHashAndPassword([]byte(user.PasswordHashed), []byte(password))
+ if err != nil {
+  r.logger.Error("Password mismatch for email: "+email, nil)
+  return false, ErrAuthenticationValidation
+ }
 
-	// Update last login time
-	updateQuery := `
-		UPDATE users 
-		SET last_login = $1
-		WHERE id = $2
-	`
-	_, err = r.db.Exec(updateQuery, time.Now(), user.ID)
-	if err != nil {
-		r.logger.Error("Failed to update last login", err)
-		// Don't fail authentication just because last login update failed
-	}
+ // Update last login time
+ updateQuery := `
+  UPDATE users 
+  SET last_login = $1
+  WHERE id = $2
+ `
+ _, err = r.db.Exec(updateQuery, time.Now(), user.ID)
+ if err != nil {
+  r.logger.Error("Failed to update last login", err)
+  // Don't fail authentication just because last login update failed
+ }
 
-	return true, nil
+ return true, nil
 }
 
 func (r *AccountRepository) GetAccountDetails(email string) (models.User, error) {
-	var user models.User
-	query := `
-		SELECT id, name, email
-		FROM users 
-		WHERE email = $1 AND time_deleted IS NULL
-	`
-	err := r.db.QueryRow(query, email).Scan(
-		&user.ID,
-		&user.Name,
-		&user.Email,
-	)
-	if err == sql.ErrNoRows {
-		r.logger.Error("User not found for email: "+email, nil)
-		return models.User{}, ErrUserNotFound
-	}
-	if err != nil {
-		r.logger.Error("Failed to query user by email", err)
-		return models.User{}, err
-	}
+ var user models.User
+ query := `
+  SELECT id, name, email
+  FROM users 
+  WHERE email = $1 AND time_deleted IS NULL
+ `
+ err := r.db.QueryRow(query, email).Scan(
+  &user.ID,
+  &user.Name,
+  &user.Email,
+ )
+ if err == sql.ErrNoRows {
+  r.logger.Error("User not found for email: "+email, nil)
+  return models.User{}, ErrUserNotFound
+ }
+ if err != nil {
+  r.logger.Error("Failed to query user by email", err)
+  return models.User{}, err
+ }
 
-	// Fetch favorites
-	favoritesQuery := `
-		SELECT m.id, m.tmdb_id, m.title, m.tagline, m.release_year, 
-		       m.overview, m.score, m.popularity, m.language, 
-		       m.poster_url, m.trailer_url
-		FROM movies m
-		JOIN user_movies um ON m.id = um.movie_id
-		WHERE um.user_id = $1 AND um.relation_type = 'favorite'
-	`
-	favoriteRows, err := r.db.Query(favoritesQuery, user.ID)
-	if err != nil {
-		r.logger.Error("Failed to query user favorites", err)
-		return user, err
-	}
-	defer favoriteRows.Close()
+ // Fetch favorites
+ favoritesQuery := `
+  SELECT m.id, m.tmdb_id, m.title, m.tagline, m.release_year, 
+         m.overview, m.score, m.popularity, m.language, 
+         m.poster_url, m.trailer_url
+  FROM movies m
+  JOIN user_movies um ON m.id = um.movie_id
+  WHERE um.user_id = $1 AND um.relation_type = 'favorite'
+ `
+ favoriteRows, err := r.db.Query(favoritesQuery, user.ID)
+ if err != nil {
+  r.logger.Error("Failed to query user favorites", err)
+  return user, err
+ }
+ defer favoriteRows.Close()
 
-	for favoriteRows.Next() {
-		var m models.Movie
-		if err := favoriteRows.Scan(
-			&m.ID, &m.TMDB_ID, &m.Title, &m.Tagline, &m.ReleaseYear,
-			&m.Overview, &m.Score, &m.Popularity, &m.Language,
-			&m.PosterURL, &m.TrailerURL,
-		); err != nil {
-			r.logger.Error("Failed to scan favorite movie row", err)
-			return user, err
-		}
-		user.Favorites = append(user.Favorites, m)
-	}
+ for favoriteRows.Next() {
+  var m models.Movie
+  if err := favoriteRows.Scan(
+   &m.ID, &m.TMDB_ID, &m.Title, &m.Tagline, &m.ReleaseYear,
+   &m.Overview, &m.Score, &m.Popularity, &m.Language,
+   &m.PosterURL, &m.TrailerURL,
+  ); err != nil {
+   r.logger.Error("Failed to scan favorite movie row", err)
+   return user, err
+  }
+  user.Favorites = append(user.Favorites, m)
+ }
 
-	// Fetch watchlist
-	watchlistQuery := `
-		SELECT m.id, m.tmdb_id, m.title, m.tagline, m.release_year, 
-		       m.overview, m.score, m.popularity, m.language, 
-		       m.poster_url, m.trailer_url
-		FROM movies m
-		JOIN user_movies um ON m.id = um.movie_id
-		WHERE um.user_id = $1 AND um.relation_type = 'watchlist'
-	`
-	watchlistRows, err := r.db.Query(watchlistQuery, user.ID)
-	if err != nil {
-		r.logger.Error("Failed to query user watchlist", err)
-		return user, err
-	}
-	defer watchlistRows.Close()
+ // Fetch watchlist
+ watchlistQuery := `
+  SELECT m.id, m.tmdb_id, m.title, m.tagline, m.release_year, 
+         m.overview, m.score, m.popularity, m.language, 
+         m.poster_url, m.trailer_url
+  FROM movies m
+  JOIN user_movies um ON m.id = um.movie_id
+  WHERE um.user_id = $1 AND um.relation_type = 'watchlist'
+ `
+ watchlistRows, err := r.db.Query(watchlistQuery, user.ID)
+ if err != nil {
+  r.logger.Error("Failed to query user watchlist", err)
+  return user, err
+ }
+ defer watchlistRows.Close()
 
-	for watchlistRows.Next() {
-		var m models.Movie
-		if err := watchlistRows.Scan(
-			&m.ID, &m.TMDB_ID, &m.Title, &m.Tagline, &m.ReleaseYear,
-			&m.Overview, &m.Score, &m.Popularity, &m.Language,
-			&m.PosterURL, &m.TrailerURL,
-		); err != nil {
-			r.logger.Error("Failed to scan watchlist movie row", err)
-			return user, err
-		}
-		user.Watchlist = append(user.Watchlist, m)
-	}
+ for watchlistRows.Next() {
+  var m models.Movie
+  if err := watchlistRows.Scan(
+   &m.ID, &m.TMDB_ID, &m.Title, &m.Tagline, &m.ReleaseYear,
+   &m.Overview, &m.Score, &m.Popularity, &m.Language,
+   &m.PosterURL, &m.TrailerURL,
+  ); err != nil {
+   r.logger.Error("Failed to scan watchlist movie row", err)
+   return user, err
+  }
+  user.Watchlist = append(user.Watchlist, m)
+ }
 
-	return user, nil
+ return user, nil
 }
 
 func (r *AccountRepository) SaveCollection(user models.User, movieID int, collection string) (bool, error) {
-	// Validate inputs
-	if movieID <= 0 {
-		r.logger.Error("SaveCollection failed: invalid movie ID", nil)
-		return false, errors.New("invalid movie ID")
-	}
-	if collection != "favorite" && collection != "watchlist" {
-		r.logger.Error("SaveCollection failed: invalid collection type", nil)
-		return false, errors.New("collection must be 'favorite' or 'watchlist'")
-	}
+ // Validate inputs
+ if movieID <= 0 {
+  r.logger.Error("SaveCollection failed: invalid movie ID", nil)
+  return false, errors.New("invalid movie ID")
+ }
+ if collection != "favorite" && collection != "watchlist" {
+  r.logger.Error("SaveCollection failed: invalid collection type", nil)
+  return false, errors.New("collection must be 'favorite' or 'watchlist'")
+ }
 
-	// Get user ID from email
-	var userID int
-	err := r.db.QueryRow(`
-		SELECT id 
-		FROM users 
-		WHERE email = $1 AND time_deleted IS NULL
-	`, user.Email).Scan(&userID)
-	if err == sql.ErrNoRows {
-		r.logger.Error("User not found", nil)
-		return false, ErrUserNotFound
-	}
-	if err != nil {
-		r.logger.Error("Failed to query user ID", err)
-		return false, err
-	}
+ // Get user ID from email
+ var userID int
+ err := r.db.QueryRow(`
+  SELECT id 
+  FROM users 
+  WHERE email = $1 AND time_deleted IS NULL
+ `, user.Email).Scan(&userID)
+ if err == sql.ErrNoRows {
+  r.logger.Error("User not found", nil)
+  return false, ErrUserNotFound
+ }
+ if err != nil {
+  r.logger.Error("Failed to query user ID", err)
+  return false, err
+ }
 
-	// Check if the relationship already exists
-	var exists bool
-	err = r.db.QueryRow(`
-		SELECT EXISTS(
-			SELECT 1 
-			FROM user_movies 
-			WHERE user_id = $1 
-			AND movie_id = $2 
-			AND relation_type = $3
-		)
-	`, userID, movieID, collection).Scan(&exists)
-	if err != nil {
-		r.logger.Error("Failed to check existing collection entry", err)
-		return false, err
-	}
-	if exists {
-		r.logger.Info("Movie already in " + collection + " for user")
-		return true, nil // Return true since the movie is already in the collection
-	}
+ // Check if the relationship already exists
+ var exists bool
+ err = r.db.QueryRow(`
+  SELECT EXISTS(
+   SELECT 1 
+   FROM user_movies 
+   WHERE user_id = $1 
+   AND movie_id = $2 
+   AND relation_type = $3
+  )
+ `, userID, movieID, collection).Scan(&exists)
+ if err != nil {
+  r.logger.Error("Failed to check existing collection entry", err)
+  return false, err
+ }
+ if exists {
+  r.logger.Info("Movie already in " + collection + " for user")
+  return true, nil // Return true since the movie is already in the collection
+ }
 
-	// Insert the new relationship
-	query := `
-		INSERT INTO user_movies (user_id, movie_id, relation_type, time_added)
-		VALUES ($1, $2, $3, $4)
-	`
-	_, err = r.db.Exec(query, userID, movieID, collection, time.Now())
-	if err != nil {
-		r.logger.Error("Failed to save movie to "+collection, err)
-		return false, err
-	}
+ // Insert the new relationship
+ query := `
+  INSERT INTO user_movies (user_id, movie_id, relation_type, time_added)
+  VALUES ($1, $2, $3, $4)
+ `
+ _, err = r.db.Exec(query, userID, movieID, collection, time.Now())
+ if err != nil {
+  r.logger.Error("Failed to save movie to "+collection, err)
+  return false, err
+ }
 
-	r.logger.Info("Successfully added movie " + string(movieID) + " to " + collection + " for user")
-	return true, nil
+ r.logger.Info("Successfully added movie " + string(movieID) + " to " + collection + " for user")
+ return true, nil
 }
 
 var (
-	ErrRegistrationValidation   = errors.New("registration failed")
-	ErrAuthenticationValidation = errors.New("authentication failed")
-	ErrUserAlreadyExists        = errors.New("user already exists")
-	ErrUserNotFound             = errors.New("user not found")
+ ErrRegistrationValidation   = errors.New("registration failed")
+ ErrAuthenticationValidation = errors.New("authentication failed")
+ ErrUserAlreadyExists        = errors.New("user already exists")
+ ErrUserNotFound             = errors.New("user not found")
 )
 
 ```
@@ -1884,130 +1889,130 @@ Now we create `handlers/account_handlers.go`
 package handlers
 
 import (
-	"context"
-	"encoding/json"
-	"net/http"
-	"strings"
+ "context"
+ "encoding/json"
+ "net/http"
+ "strings"
 
-	"frontendmasters.com/movies/data"
-	"frontendmasters.com/movies/logger"
-	"frontendmasters.com/movies/models"
-	"frontendmasters.com/movies/token"
+ "frontendmasters.com/movies/data"
+ "frontendmasters.com/movies/logger"
+ "frontendmasters.com/movies/models"
+ "frontendmasters.com/movies/token"
 )
 
 // Define request structure
 type RegisterRequest struct {
-	Name     string `json:"name"`
-	Email    string `json:"email"`
-	Password string `json:"password"`
+ Name     string `json:"name"`
+ Email    string `json:"email"`
+ Password string `json:"password"`
 }
 
 // Define request structure
 type AuthRequest struct {
-	Email    string `json:"email"`
-	Password string `json:"password"`
+ Email    string `json:"email"`
+ Password string `json:"password"`
 }
 
 type AuthResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
+ Success bool   `json:"success"`
+ Message string `json:"message"`
 }
 
 type AccountHandler struct {
-	storage data.AccountStorage
-	logger  *logger.Logger
+ storage data.AccountStorage
+ logger  *logger.Logger
 }
 
 // Utility functions
 func (h *AccountHandler) writeJSONResponse(w http.ResponseWriter, data interface{}) error {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		h.logger.Error("Failed to encode response", err)
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		return err
-	}
-	return nil
+ w.Header().Set("Content-Type", "application/json")
+ if err := json.NewEncoder(w).Encode(data); err != nil {
+  h.logger.Error("Failed to encode response", err)
+  http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+  return err
+ }
+ return nil
 }
 
 func (h *AccountHandler) handleStorageError(w http.ResponseWriter, err error, context string) bool {
-	if err != nil {
-		switch err {
-		case data.ErrAuthenticationValidation, data.ErrUserAlreadyExists, data.ErrRegistrationValidation:
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusUnauthorized)
-			json.NewEncoder(w).Encode(AuthResponse{Success: false, Message: err.Error()})
-			return true
-		case data.ErrUserNotFound:
-			http.Error(w, "User not found", http.StatusNotFound)
-			return true
-		default:
-			h.logger.Error(context, err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-			return true
-		}
-	}
-	return false
+ if err != nil {
+  switch err {
+  case data.ErrAuthenticationValidation, data.ErrUserAlreadyExists, data.ErrRegistrationValidation:
+   w.Header().Set("Content-Type", "application/json")
+   w.WriteHeader(http.StatusUnauthorized)
+   json.NewEncoder(w).Encode(AuthResponse{Success: false, Message: err.Error()})
+   return true
+  case data.ErrUserNotFound:
+   http.Error(w, "User not found", http.StatusNotFound)
+   return true
+  default:
+   h.logger.Error(context, err)
+   http.Error(w, "Internal server error", http.StatusInternalServerError)
+   return true
+  }
+ }
+ return false
 }
 
 func (h *AccountHandler) Register(w http.ResponseWriter, r *http.Request) {
 
-	// Parse request body
-	var req RegisterRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Error("Failed to decode registration request", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+ // Parse request body
+ var req RegisterRequest
+ if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+  h.logger.Error("Failed to decode registration request", err)
+  http.Error(w, "Invalid request body", http.StatusBadRequest)
+  return
+ }
 
-	// Register the user
-	success, err := h.storage.Register(req.Name, req.Email, req.Password)
-	if h.handleStorageError(w, err, "Failed to register user") {
-		return
-	}
+ // Register the user
+ success, err := h.storage.Register(req.Name, req.Email, req.Password)
+ if h.handleStorageError(w, err, "Failed to register user") {
+  return
+ }
 
-	// Return success response
-	response := AuthResponse{
-		Success: success,
-		Message: "User registered successfully",
-	}
+ // Return success response
+ response := AuthResponse{
+  Success: success,
+  Message: "User registered successfully",
+ }
 
-	if err := h.writeJSONResponse(w, response); err == nil {
-		h.logger.Info("Successfully registered user with email: " + req.Email)
-	}
+ if err := h.writeJSONResponse(w, response); err == nil {
+  h.logger.Info("Successfully registered user with email: " + req.Email)
+ }
 }
 
 func (h *AccountHandler) Authenticate(w http.ResponseWriter, r *http.Request) {
-	// Parse request body
-	var req AuthRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Error("Failed to decode authentication request", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+ // Parse request body
+ var req AuthRequest
+ if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+  h.logger.Error("Failed to decode authentication request", err)
+  http.Error(w, "Invalid request body", http.StatusBadRequest)
+  return
+ }
 
-	// Authenticate the user
-	success, err := h.storage.Authenticate(req.Email, req.Password)
-	if h.handleStorageError(w, err, "Failed to authenticate user") {
-		return
-	}
+ // Authenticate the user
+ success, err := h.storage.Authenticate(req.Email, req.Password)
+ if h.handleStorageError(w, err, "Failed to authenticate user") {
+  return
+ }
 
-	// Return success response
-	response := AuthResponse{
-		Success: success,
-		Message: "User registered successfully",
-	}
+ // Return success response
+ response := AuthResponse{
+  Success: success,
+  Message: "User registered successfully",
+ }
 
-	if err := h.writeJSONResponse(w, response); err == nil {
-		h.logger.Info("Successfully authenticated user with email: " + req.Email)
-	}
+ if err := h.writeJSONResponse(w, response); err == nil {
+  h.logger.Info("Successfully authenticated user with email: " + req.Email)
+ }
 }
 
 
 func NewAccountHandler(storage data.AccountStorage, log *logger.Logger) *AccountHandler {
-	return &AccountHandler{
-		storage: storage,
-		logger:  log,
-	}
+ return &AccountHandler{
+  storage: storage,
+  logger:  log,
+ }
 }
 
 
@@ -2016,19 +2021,18 @@ func NewAccountHandler(storage data.AccountStorage, log *logger.Logger) *Account
 Finally, we register the handlers in *main.go*
 
 ```go
-	accountRepo, err := data.NewAccountRepository(db, logInstance)
-	if err != nil {
-		log.Fatalf("Failed to initialize account repository: %v", err)
-	}
+ accountRepo, err := data.NewAccountRepository(db, logInstance)
+ if err != nil {
+  log.Fatalf("Failed to initialize account repository: %v", err)
+ }
 
-	// ...
+ // ...
 
-	accountHandler := handlers.NewAccountHandler(accountRepo, logInstance)
-	http.HandleFunc("/api/account/register/", accountHandler.Register)
-	http.HandleFunc("/api/account/authenticate/", accountHandler.Authenticate)
+ accountHandler := handlers.NewAccountHandler(accountRepo, logInstance)
+ http.HandleFunc("/api/account/register/", accountHandler.Register)
+ http.HandleFunc("/api/account/authenticate/", accountHandler.Authenticate)
 
 ```
-
 
 ### G3 - Adding the Forms
 
@@ -2160,19 +2164,19 @@ Then, we create the *token* package and inside two file. Starting with *getsecre
 package token
 
 import (
-	"os"
-	"frontendmasters.com/movies/logger"
+ "os"
+ "frontendmasters.com/movies/logger"
 )
 
 func GetJWTSecret(logger logger.Logger) string {
-	jwtSecret := os.Getenv("JWT_SECRET")
-	if jwtSecret == "" {
-		jwtSecret = "default-secret-for-dev"
-		logger.Info("JWT_SECRET not set, using default development secret")
-	} else {
-		logger.Info("Using JWT_SECRET from environment")
-	}
-	return jwtSecret
+ jwtSecret := os.Getenv("JWT_SECRET")
+ if jwtSecret == "" {
+  jwtSecret = "default-secret-for-dev"
+  logger.Info("JWT_SECRET not set, using default development secret")
+ } else {
+  logger.Info("Using JWT_SECRET from environment")
+ }
+ return jwtSecret
 }
 ```
 
@@ -2182,32 +2186,32 @@ Then, *creation.go*
 package token
 
 import (
-	"time"
+ "time"
 
-	"frontendmasters.com/movies/logger"
-	"frontendmasters.com/movies/models"
-	"github.com/golang-jwt/jwt/v5"
+ "frontendmasters.com/movies/logger"
+ "frontendmasters.com/movies/models"
+ "github.com/golang-jwt/jwt/v5"
 )
 
 func CreateJWT(user models.User, logger logger.Logger) string {
-	jwtSecret := GetJWTSecret(logger)
+ jwtSecret := GetJWTSecret(logger)
 
-	// Create a JWT token
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
-		"id":    user.ID,
-		"email": user.Email,
-		"name":  user.Name,
-		"exp":   time.Now().Add(time.Hour * 72).Unix(), // Token expires in 72 hours
-	})
+ // Create a JWT token
+ token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
+  "id":    user.ID,
+  "email": user.Email,
+  "name":  user.Name,
+  "exp":   time.Now().Add(time.Hour * 72).Unix(), // Token expires in 72 hours
+ })
 
-	// Sign the token with the secret
-	tokenString, err := token.SignedString([]byte(jwtSecret))
-	if err != nil {
-		logger.Error("Failed to sign JWT", err)
-		return ""
-	}
+ // Sign the token with the secret
+ tokenString, err := token.SignedString([]byte(jwtSecret))
+ if err != nil {
+  logger.Error("Failed to sign JWT", err)
+  return ""
+ }
 
-	return tokenString
+ return tokenString
 }
 ```
 
@@ -2217,33 +2221,33 @@ And finally, *validation.go*
 package token
 
 import (
-	"frontendmasters.com/movies/logger"
-	"github.com/golang-jwt/jwt/v5"
+ "frontendmasters.com/movies/logger"
+ "github.com/golang-jwt/jwt/v5"
 )
 
 func ValidateJWT(tokenString string, logger logger.Logger) (*jwt.Token, error) {
-	jwtSecret := GetJWTSecret(logger)
+ jwtSecret := GetJWTSecret(logger)
 
-	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
-		// Ensure the token's signing method is HMAC
-		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			logger.Error("Unexpected signing method", nil)
-			return nil, jwt.ErrTokenSignatureInvalid
-		}
-		return []byte(jwtSecret), nil
-	})
+ token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+  // Ensure the token's signing method is HMAC
+  if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+   logger.Error("Unexpected signing method", nil)
+   return nil, jwt.ErrTokenSignatureInvalid
+  }
+  return []byte(jwtSecret), nil
+ })
 
-	if err != nil {
-		logger.Error("Failed to validate JWT", err)
-		return nil, err
-	}
+ if err != nil {
+  logger.Error("Failed to validate JWT", err)
+  return nil, err
+ }
 
-	if !token.Valid {
-		logger.Error("Invalid JWT token", nil)
-		return nil, jwt.ErrTokenInvalidId
-	}
+ if !token.Valid {
+  logger.Error("Invalid JWT token", nil)
+  return nil, jwt.ErrTokenInvalidId
+ }
 
-	return token, nil
+ return token, nil
 }
 ```
 
@@ -2251,28 +2255,28 @@ Finally, we add it to our AuthResponse struct in *account_handlers.go* and retur
 
 ```go
 type AuthResponse struct {
-	Success bool   `json:"success"`
-	Message string `json:"message"`
-	JWT     string `json:"jwt"`
+ Success bool   `json:"success"`
+ Message string `json:"message"`
+ JWT     string `json:"jwt"`
 }
 
 // ...
 
 // in register
-	response := AuthResponse{
-		Success: success,
-		Message: "User registered successfully",
-		JWT:     token.CreateJWT(models.User{Email: req.Email, Name: req.Name}, *h.logger),
-	}
+ response := AuthResponse{
+  Success: success,
+  Message: "User registered successfully",
+  JWT:     token.CreateJWT(models.User{Email: req.Email, Name: req.Name}, *h.logger),
+ }
 
 // ...
 
 // in authenticate
-	response := AuthResponse{
-		Success: success,
-		Message: "User registered successfully",
-		JWT:     token.CreateJWT(models.User{Email: req.Email}, *h.logger),
-	}
+ response := AuthResponse{
+  Success: success,
+  Message: "User registered successfully",
+  JWT:     token.CreateJWT(models.User{Email: req.Email}, *h.logger),
+ }
 ```
 
 ### G7 - Working with the Token Client-Side
@@ -2313,12 +2317,12 @@ Then, in *app.js* we save the jwt after a successful login or registration
 ```js
 // ...
 if (response.success) {
-	app.Store.jwt = response.jwt;
-	app.Router.go("/account/")
+ app.Store.jwt = response.jwt;
+ app.Router.go("/account/")
 } else {
-	app.showError(response.message, false);
+ app.showError(response.message, false);
 }
-// ...			
+// ...   
 ```
 
 Finally, we update our router, so it can detect and work with URLs needing authentication
@@ -2357,13 +2361,13 @@ We start by adding a template to our *index.html*
 
 ```html
  <template id="template-account">
-	<section id="account">
-		<h2>You are Logged In</h2>
-		<button onclick="app.logout()">Log out</button>
-		<button onclick="app.Router.go('/account/favorites')">Your Favorites</button>
-		<button onclick="app.Router.go('/account/watchlist')">Your Watchlist</button>
+ <section id="account">
+  <h2>You are Logged In</h2>
+  <button onclick="app.logout()">Log out</button>
+  <button onclick="app.Router.go('/account/favorites')">Your Favorites</button>
+  <button onclick="app.Router.go('/account/watchlist')">Your Watchlist</button>
 
-	</section>
+ </section>
 </template>        
 ```
 
@@ -2397,8 +2401,6 @@ We finally define the route in *Router.js* and implement app.logout in *main.js*
 // ...
 ```
 
-
-
 ## H-Favorites and Watchlist
 
 ### H1 - Creating a middleware for authentication check
@@ -2407,50 +2409,50 @@ At *AccountHandlers.go* add the following code:
 
 ```go
 func (h *AccountHandler) AuthMiddleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		tokenStr := r.Header.Get("Authorization")
-		if tokenStr == "" {
-			http.Error(w, "Missing authorization token", http.StatusUnauthorized)
-			return
-		}
+ return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+  tokenStr := r.Header.Get("Authorization")
+  if tokenStr == "" {
+   http.Error(w, "Missing authorization token", http.StatusUnauthorized)
+   return
+  }
 
-		// Remove "Bearer " prefix if present
-		tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
+  // Remove "Bearer " prefix if present
+  tokenStr = strings.TrimPrefix(tokenStr, "Bearer ")
 
-		// Parse and validate the token
+  // Parse and validate the token
 
-		token, err := jwt.Parse(tokenStr,
-			func(t *jwt.Token) (interface{}, error) {
-				// Ensure the signing method is HMAC
-				if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
-					return nil, jwt.ErrSignatureInvalid
-				}
-				return []byte(token.GetJWTSecret(*h.logger)), nil
-			},
-		)
-		if err != nil || !token.Valid {
-			http.Error(w, "Invalid token", http.StatusUnauthorized)
-			return
-		}
+  token, err := jwt.Parse(tokenStr,
+   func(t *jwt.Token) (interface{}, error) {
+    // Ensure the signing method is HMAC
+    if _, ok := t.Method.(*jwt.SigningMethodHMAC); !ok {
+     return nil, jwt.ErrSignatureInvalid
+    }
+    return []byte(token.GetJWTSecret(*h.logger)), nil
+   },
+  )
+  if err != nil || !token.Valid {
+   http.Error(w, "Invalid token", http.StatusUnauthorized)
+   return
+  }
 
-		// Extract claims from the token
-		claims, ok := token.Claims.(jwt.MapClaims)
-		if !ok {
-			http.Error(w, "Invalid token claims", http.StatusUnauthorized)
-			return
-		}
+  // Extract claims from the token
+  claims, ok := token.Claims.(jwt.MapClaims)
+  if !ok {
+   http.Error(w, "Invalid token claims", http.StatusUnauthorized)
+   return
+  }
 
-		// Get the email from claims
-		email, ok := claims["email"].(string)
-		if !ok {
-			http.Error(w, "Email not found in token", http.StatusUnauthorized)
-			return
-		}
+  // Get the email from claims
+  email, ok := claims["email"].(string)
+  if !ok {
+   http.Error(w, "Email not found in token", http.StatusUnauthorized)
+   return
+  }
 
-		// Inject email into the request context
-		ctx := context.WithValue(r.Context(), "email", email)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	})
+  // Inject email into the request context
+  ctx := context.WithValue(r.Context(), "email", email)
+  next.ServeHTTP(w, r.WithContext(ctx))
+ })
 }
 
 ```
@@ -2463,84 +2465,84 @@ In  *AccountHandlers.go* add the new handlers
 
 
 func (h *AccountHandler) SaveToCollection(w http.ResponseWriter, r *http.Request) {
-	type CollectionRequest struct {
-		MovieID    int    `json:"movie_id"`
-		Collection string `json:"collection"`
-	}
+ type CollectionRequest struct {
+  MovieID    int    `json:"movie_id"`
+  Collection string `json:"collection"`
+ }
 
-	var req CollectionRequest
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Error("Failed to decode collection request", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+ var req CollectionRequest
+ if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+  h.logger.Error("Failed to decode collection request", err)
+  http.Error(w, "Invalid request body", http.StatusBadRequest)
+  return
+ }
 
-	email, ok := r.Context().Value("email").(string)
-	if !ok {
-		http.Error(w, "Unable to retrieve email", http.StatusInternalServerError)
-		return
-	}
+ email, ok := r.Context().Value("email").(string)
+ if !ok {
+  http.Error(w, "Unable to retrieve email", http.StatusInternalServerError)
+  return
+ }
 
-	success, err := h.storage.SaveCollection(models.User{Email: email},
-		req.MovieID, req.Collection)
-	if h.handleStorageError(w, err, "Failed to save to collection") {
-		return
-	}
+ success, err := h.storage.SaveCollection(models.User{Email: email},
+  req.MovieID, req.Collection)
+ if h.handleStorageError(w, err, "Failed to save to collection") {
+  return
+ }
 
-	response := AuthResponse{
-		Success: success,
-		Message: "Movie added to " + req.Collection + " successfully",
-	}
+ response := AuthResponse{
+  Success: success,
+  Message: "Movie added to " + req.Collection + " successfully",
+ }
 
-	if err := h.writeJSONResponse(w, response); err == nil {
-		h.logger.Info("Successfully saved movie to " + req.Collection)
-	}
+ if err := h.writeJSONResponse(w, response); err == nil {
+  h.logger.Info("Successfully saved movie to " + req.Collection)
+ }
 }
 
 func (h *AccountHandler) GetFavorites(w http.ResponseWriter, r *http.Request) {
-	email, ok := r.Context().Value("email").(string)
-	if !ok {
-		http.Error(w, "Unable to retrieve email", http.StatusInternalServerError)
-		return
-	}
-	details, err := h.storage.GetAccountDetails(email)
-	if err != nil {
-		http.Error(w, "Unable to retrieve collections", http.StatusInternalServerError)
-		return
-	}
-	if err := h.writeJSONResponse(w, details.Favorites); err == nil {
-		h.logger.Info("Successfully sent favorites")
-	}
+ email, ok := r.Context().Value("email").(string)
+ if !ok {
+  http.Error(w, "Unable to retrieve email", http.StatusInternalServerError)
+  return
+ }
+ details, err := h.storage.GetAccountDetails(email)
+ if err != nil {
+  http.Error(w, "Unable to retrieve collections", http.StatusInternalServerError)
+  return
+ }
+ if err := h.writeJSONResponse(w, details.Favorites); err == nil {
+  h.logger.Info("Successfully sent favorites")
+ }
 }
 
 func (h *AccountHandler) GetWatchlist(w http.ResponseWriter, r *http.Request) {
-	email, ok := r.Context().Value("email").(string)
-	if !ok {
-		http.Error(w, "Unable to retrieve email", http.StatusInternalServerError)
-		return
-	}
-	details, err := h.storage.GetAccountDetails(email)
-	if err != nil {
-		http.Error(w, "Unable to retrieve collections", http.StatusInternalServerError)
-		return
-	}
-	if err := h.writeJSONResponse(w, details.Watchlist); err == nil {
-		h.logger.Info("Successfully sent favorites")
-	}
+ email, ok := r.Context().Value("email").(string)
+ if !ok {
+  http.Error(w, "Unable to retrieve email", http.StatusInternalServerError)
+  return
+ }
+ details, err := h.storage.GetAccountDetails(email)
+ if err != nil {
+  http.Error(w, "Unable to retrieve collections", http.StatusInternalServerError)
+  return
+ }
+ if err := h.writeJSONResponse(w, details.Watchlist); err == nil {
+  h.logger.Info("Successfully sent favorites")
+ }
 }
 ```
 
 Then register them in *main.go*
 
 ```go
-	http.Handle("/api/account/favorites/",
-		accountHandler.AuthMiddleware(http.HandlerFunc(accountHandler.GetFavorites)))
+ http.Handle("/api/account/favorites/",
+  accountHandler.AuthMiddleware(http.HandlerFunc(accountHandler.GetFavorites)))
 
-	http.Handle("/api/account/watchlist/",
-		accountHandler.AuthMiddleware(http.HandlerFunc(accountHandler.GetWatchlist)))
+ http.Handle("/api/account/watchlist/",
+  accountHandler.AuthMiddleware(http.HandlerFunc(accountHandler.GetWatchlist)))
 
-	http.Handle("/api/account/save-to-collection/",
-		accountHandler.AuthMiddleware(http.HandlerFunc(accountHandler.SaveToCollection)))
+ http.Handle("/api/account/save-to-collection/",
+  accountHandler.AuthMiddleware(http.HandlerFunc(accountHandler.SaveToCollection)))
 ```
 
 ### H3 - Connecting with the Client
@@ -2613,6 +2615,7 @@ Add this template to *index.html*
         </section>
     </template>  
 ```
+
 Then, create *CollectionPage.js*
 
 ```js
@@ -2728,7 +2731,7 @@ In *app.js* lets add the new two features:
             app.Router.go("/account/");
         }
     }
-```	
+``` 
 
 Back in *MovieDetailsPage.js*, add the following calls
 
@@ -2777,47 +2780,47 @@ package models
 import "github.com/go-webauthn/webauthn/webauthn"
 
 type PasskeyUser struct {
-	ID          []byte
-	DisplayName string
-	Name        string
+ ID          []byte
+ DisplayName string
+ Name        string
 
-	Credentials []webauthn.Credential
+ Credentials []webauthn.Credential
 }
 
 func (u *PasskeyUser) WebAuthnID() []byte {
-	return u.ID
+ return u.ID
 }
 
 func (u *PasskeyUser) WebAuthnName() string {
-	return u.Name
+ return u.Name
 }
 
 func (u *PasskeyUser) WebAuthnDisplayName() string {
-	return u.DisplayName
+ return u.DisplayName
 }
 
 func (u *PasskeyUser) WebAuthnCredentials() []webauthn.Credential {
-	return u.Credentials
+ return u.Credentials
 }
 
 func (u PasskeyUser) WebAuthnIcon() string {
-	return ""
+ return ""
 }
 
 func (u *PasskeyUser) PutCredential(credential webauthn.Credential) {
-	u.Credentials = append(u.Credentials, credential)
+ u.Credentials = append(u.Credentials, credential)
 }
 
 func (u *PasskeyUser) AddCredential(credential *webauthn.Credential) {
-	u.Credentials = append(u.Credentials, *credential)
+ u.Credentials = append(u.Credentials, *credential)
 }
 
 func (u *PasskeyUser) UpdateCredential(credential *webauthn.Credential) {
-	for i, c := range u.Credentials {
-		if string(c.ID) == string(credential.ID) {
-			u.Credentials[i] = *credential
-		}
-	}
+ for i, c := range u.Credentials {
+  if string(c.ID) == string(credential.ID) {
+   u.Credentials[i] = *credential
+  }
+ }
 }
 
 ```
@@ -2828,13 +2831,13 @@ Let's update our *interfaces.go*
 
 ```go
 type PasskeyStore interface {
-	GetUserByEmail(userName string) (*models.PasskeyUser, error)
-	GetUserByID(ID int) (*models.PasskeyUser, error)
-	SaveUser(models.PasskeyUser)
-	GenSessionID() (string, error)
-	GetSession(token string) (webauthn.SessionData, bool)
-	SaveSession(token string, data webauthn.SessionData)
-	DeleteSession(token string)
+ GetUserByEmail(userName string) (*models.PasskeyUser, error)
+ GetUserByID(ID int) (*models.PasskeyUser, error)
+ SaveUser(models.PasskeyUser)
+ GenSessionID() (string, error)
+ GetSession(token string) (webauthn.SessionData, bool)
+ SaveSession(token string, data webauthn.SessionData)
+ DeleteSession(token string)
 }
 ```
 
@@ -2844,211 +2847,211 @@ Now let's create the *data/passkey_repository.go*
 package data
 
 import (
-	"crypto/rand"
-	"database/sql"
-	"encoding/base64"
-	"encoding/json"
-	"fmt"
-	"strconv"
+ "crypto/rand"
+ "database/sql"
+ "encoding/base64"
+ "encoding/json"
+ "fmt"
+ "strconv"
 
-	"frontendmasters.com/movies/logger"
-	"frontendmasters.com/movies/models"
-	"github.com/go-webauthn/webauthn/webauthn"
+ "frontendmasters.com/movies/logger"
+ "frontendmasters.com/movies/models"
+ "github.com/go-webauthn/webauthn/webauthn"
 )
 
 // PasskeyRepository manages WebAuthn passkey data using a database.
 type PasskeyRepository struct {
-	db       *sql.DB                         // Database connection
-	sessions map[string]webauthn.SessionData // In-memory session storage
-	log      logger.Logger                   // Logger for debugging and errors
+ db       *sql.DB                         // Database connection
+ sessions map[string]webauthn.SessionData // In-memory session storage
+ log      logger.Logger                   // Logger for debugging and errors
 }
 
 // NewPasskeyRepository initializes a new PasskeyRepository with a database connection.
 func NewPasskeyRepository(db *sql.DB, log logger.Logger) *PasskeyRepository {
-	return &PasskeyRepository{
-		db:       db,
-		sessions: make(map[string]webauthn.SessionData),
-		log:      log,
-	}
+ return &PasskeyRepository{
+  db:       db,
+  sessions: make(map[string]webauthn.SessionData),
+  log:      log,
+ }
 }
 
 // GenSessionID generates a random session ID.
 func (r *PasskeyRepository) GenSessionID() (string, error) {
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(b), nil
+ b := make([]byte, 32)
+ _, err := rand.Read(b)
+ if err != nil {
+  return "", err
+ }
+ return base64.URLEncoding.EncodeToString(b), nil
 }
 
 // GetSession retrieves session data from the in-memory map.
 func (r *PasskeyRepository) GetSession(token string) (webauthn.SessionData, bool) {
-	r.log.Info(fmt.Sprintf("GetSession: %v", r.sessions[token]))
-	val, ok := r.sessions[token]
-	return val, ok
+ r.log.Info(fmt.Sprintf("GetSession: %v", r.sessions[token]))
+ val, ok := r.sessions[token]
+ return val, ok
 }
 
 // SaveSession stores session data in the in-memory map.
 func (r *PasskeyRepository) SaveSession(token string, data webauthn.SessionData) {
-	r.log.Info(fmt.Sprintf("SaveSession: %s - %v", token, data))
-	r.sessions[token] = data
+ r.log.Info(fmt.Sprintf("SaveSession: %s - %v", token, data))
+ r.sessions[token] = data
 }
 
 // DeleteSession removes session data from the in-memory map.
 func (r *PasskeyRepository) DeleteSession(token string) {
-	r.log.Info(fmt.Sprintf("DeleteSession: %v", token))
-	delete(r.sessions, token)
+ r.log.Info(fmt.Sprintf("DeleteSession: %v", token))
+ delete(r.sessions, token)
 }
 
 func (r *PasskeyRepository) GetUserByEmail(email string) (*models.PasskeyUser, error) {
-	r.log.Info(fmt.Sprintf("Get User: %v", email))
+ r.log.Info(fmt.Sprintf("Get User: %v", email))
 
-	// Check if user exists by email
-	var userID int
-	err := r.db.QueryRow("SELECT id FROM users WHERE email = $1", email).Scan(&userID)
-	if err == sql.ErrNoRows {
-		r.log.Error("Failed to find new user", err)
-		return nil, err
-	} else if err != nil {
-		r.log.Error("Failed to query user", err)
-		return nil, err
-	}
+ // Check if user exists by email
+ var userID int
+ err := r.db.QueryRow("SELECT id FROM users WHERE email = $1", email).Scan(&userID)
+ if err == sql.ErrNoRows {
+  r.log.Error("Failed to find new user", err)
+  return nil, err
+ } else if err != nil {
+  r.log.Error("Failed to query user", err)
+  return nil, err
+ }
 
-	// Fetch user credentials from passkeys table
-	rows, err := r.db.Query("SELECT keys FROM passkeys WHERE user_id = $1", userID)
-	if err != nil {
-		r.log.Error("Failed to query passkeys", err)
-		return nil, err
-	}
-	defer rows.Close()
+ // Fetch user credentials from passkeys table
+ rows, err := r.db.Query("SELECT keys FROM passkeys WHERE user_id = $1", userID)
+ if err != nil {
+  r.log.Error("Failed to query passkeys", err)
+  return nil, err
+ }
+ defer rows.Close()
 
-	var credentials []webauthn.Credential
-	for rows.Next() {
-		var keys string
-		if err := rows.Scan(&keys); err != nil {
-			r.log.Error("Failed to scan passkey row", err)
-			return nil, err
-		}
-		cred, err := deserializeCredential(keys)
-		if err != nil {
-			r.log.Error("Failed to deserialize credential", err)
-			continue // Skip invalid credentials
-		}
-		credentials = append(credentials, cred)
-	}
+ var credentials []webauthn.Credential
+ for rows.Next() {
+  var keys string
+  if err := rows.Scan(&keys); err != nil {
+   r.log.Error("Failed to scan passkey row", err)
+   return nil, err
+  }
+  cred, err := deserializeCredential(keys)
+  if err != nil {
+   r.log.Error("Failed to deserialize credential", err)
+   continue // Skip invalid credentials
+  }
+  credentials = append(credentials, cred)
+ }
 
-	// Construct and return PasskeyUser
-	user := models.PasskeyUser{
-		ID:          []byte(strconv.Itoa(userID)), // Convert int ID to byte slice
-		Name:        email,
-		DisplayName: email,
-		Credentials: credentials,
-	}
-	return &user, nil
+ // Construct and return PasskeyUser
+ user := models.PasskeyUser{
+  ID:          []byte(strconv.Itoa(userID)), // Convert int ID to byte slice
+  Name:        email,
+  DisplayName: email,
+  Credentials: credentials,
+ }
+ return &user, nil
 }
 
 func (r *PasskeyRepository) GetUserByID(id int) (*models.PasskeyUser, error) {
-	r.log.Info(fmt.Sprintf("Get User: %v", id))
+ r.log.Info(fmt.Sprintf("Get User: %v", id))
 
-	// Check if user exists by id
-	var userID int
-	err := r.db.QueryRow("SELECT id FROM users WHERE id = $1", id).Scan(&userID)
-	if err == sql.ErrNoRows {
-		r.log.Error("Failed to find new user", err)
-		return nil, err
-	} else if err != nil {
-		r.log.Error("Failed to query user", err)
-		return nil, err
-	}
+ // Check if user exists by id
+ var userID int
+ err := r.db.QueryRow("SELECT id FROM users WHERE id = $1", id).Scan(&userID)
+ if err == sql.ErrNoRows {
+  r.log.Error("Failed to find new user", err)
+  return nil, err
+ } else if err != nil {
+  r.log.Error("Failed to query user", err)
+  return nil, err
+ }
 
-	// Fetch user credentials from passkeys table
-	rows, err := r.db.Query("SELECT keys FROM passkeys WHERE user_id = $1", userID)
-	if err != nil {
-		r.log.Error("Failed to query passkeys", err)
-		return nil, err
-	}
-	defer rows.Close()
+ // Fetch user credentials from passkeys table
+ rows, err := r.db.Query("SELECT keys FROM passkeys WHERE user_id = $1", userID)
+ if err != nil {
+  r.log.Error("Failed to query passkeys", err)
+  return nil, err
+ }
+ defer rows.Close()
 
-	// Fetch the email of the user
-	var email string
-	err = r.db.QueryRow("SELECT email FROM users WHERE id = $1", userID).Scan(&email)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			r.log.Error("Failed to find user email", err)
-			return nil, err
-		}
-		r.log.Error("Failed to query user email", err)
-		return nil, err
-	}
+ // Fetch the email of the user
+ var email string
+ err = r.db.QueryRow("SELECT email FROM users WHERE id = $1", userID).Scan(&email)
+ if err != nil {
+  if err == sql.ErrNoRows {
+   r.log.Error("Failed to find user email", err)
+   return nil, err
+  }
+  r.log.Error("Failed to query user email", err)
+  return nil, err
+ }
 
-	var credentials []webauthn.Credential
-	for rows.Next() {
-		var keys string
-		if err := rows.Scan(&keys); err != nil {
-			r.log.Error("Failed to scan passkey row", err)
-			return nil, err
-		}
-		cred, err := deserializeCredential(keys)
-		if err != nil {
-			r.log.Error("Failed to deserialize credential", err)
-			continue // Skip invalid credentials
-		}
-		credentials = append(credentials, cred)
-	}
+ var credentials []webauthn.Credential
+ for rows.Next() {
+  var keys string
+  if err := rows.Scan(&keys); err != nil {
+   r.log.Error("Failed to scan passkey row", err)
+   return nil, err
+  }
+  cred, err := deserializeCredential(keys)
+  if err != nil {
+   r.log.Error("Failed to deserialize credential", err)
+   continue // Skip invalid credentials
+  }
+  credentials = append(credentials, cred)
+ }
 
-	// Construct and return PasskeyUser
-	user := models.PasskeyUser{
-		ID:          []byte(strconv.Itoa(userID)), // Convert int ID to byte slice
-		Name:        email,
-		DisplayName: email,
-		Credentials: credentials,
-	}
-	return &user, nil
+ // Construct and return PasskeyUser
+ user := models.PasskeyUser{
+  ID:          []byte(strconv.Itoa(userID)), // Convert int ID to byte slice
+  Name:        email,
+  DisplayName: email,
+  Credentials: credentials,
+ }
+ return &user, nil
 }
 
 // SaveUser updates the user's credentials in the database.
 func (r *PasskeyRepository) SaveUser(user models.PasskeyUser) {
-	r.log.Info(fmt.Sprintf("SaveUser: %v", user.WebAuthnName()))
+ r.log.Info(fmt.Sprintf("SaveUser: %v", user.WebAuthnName()))
 
-	// Convert user ID from byte slice to integer
-	userID, err := strconv.Atoi(string(user.ID))
-	if err != nil {
-		r.log.Error("Invalid user ID", err)
-		return
-	}
+ // Convert user ID from byte slice to integer
+ userID, err := strconv.Atoi(string(user.ID))
+ if err != nil {
+  r.log.Error("Invalid user ID", err)
+  return
+ }
 
-	// Insert new credentials
-	for _, cred := range user.Credentials {
-		keys, err := serializeCredential(cred)
-		if err != nil {
-			r.log.Error("Failed to serialize credential", err)
-			continue
-		}
-		_, err = r.db.Exec("INSERT INTO passkeys (user_id, keys) VALUES ($1, $2)", userID, keys)
-		if err != nil {
-			r.log.Error("Failed to insert passkey", err)
-		}
-	}
+ // Insert new credentials
+ for _, cred := range user.Credentials {
+  keys, err := serializeCredential(cred)
+  if err != nil {
+   r.log.Error("Failed to serialize credential", err)
+   continue
+  }
+  _, err = r.db.Exec("INSERT INTO passkeys (user_id, keys) VALUES ($1, $2)", userID, keys)
+  if err != nil {
+   r.log.Error("Failed to insert passkey", err)
+  }
+ }
 }
 
 // serializeCredential converts a WebAuthn credential to a JSON string.
 func serializeCredential(cred webauthn.Credential) (string, error) {
-	data, err := json.Marshal(cred)
-	if err != nil {
-		return "", fmt.Errorf("failed to marshal credential: %w", err)
-	}
-	return string(data), nil
+ data, err := json.Marshal(cred)
+ if err != nil {
+  return "", fmt.Errorf("failed to marshal credential: %w", err)
+ }
+ return string(data), nil
 }
 
 // deserializeCredential converts a JSON string back to a WebAuthn credential.
 func deserializeCredential(data string) (webauthn.Credential, error) {
-	var cred webauthn.Credential
-	err := json.Unmarshal([]byte(data), &cred)
-	if err != nil {
-		return webauthn.Credential{}, fmt.Errorf("failed to unmarshal credential: %w", err)
-	}
-	return cred, nil
+ var cred webauthn.Credential
+ err := json.Unmarshal([]byte(data), &cred)
+ if err != nil {
+  return webauthn.Credential{}, fmt.Errorf("failed to unmarshal credential: %w", err)
+ }
+ return cred, nil
 }
 
 ```
@@ -3061,269 +3064,269 @@ Create *handlers/passkey_handler.go*
 package handlers
 
 import (
-	"encoding/json"
-	"net/http"
-	"strconv"
-	"time"
+ "encoding/json"
+ "net/http"
+ "strconv"
+ "time"
 
-	"frontendmasters.com/movies/data"
-	"frontendmasters.com/movies/logger"
-	"frontendmasters.com/movies/models"
-	"frontendmasters.com/movies/token"
-	"github.com/go-webauthn/webauthn/webauthn"
+ "frontendmasters.com/movies/data"
+ "frontendmasters.com/movies/logger"
+ "frontendmasters.com/movies/models"
+ "frontendmasters.com/movies/token"
+ "github.com/go-webauthn/webauthn/webauthn"
 )
 
 type WebAuthnHandler struct {
-	storage  data.PasskeyStore
-	logger   *logger.Logger
-	webauthn *webauthn.WebAuthn
+ storage  data.PasskeyStore
+ logger   *logger.Logger
+ webauthn *webauthn.WebAuthn
 }
 
 func NewWebAuthnHandler(storage data.PasskeyStore, logger *logger.Logger, webauthn *webauthn.WebAuthn) *WebAuthnHandler {
-	return &WebAuthnHandler{
-		storage:  storage,
-		logger:   logger,
-		webauthn: webauthn,
-	}
+ return &WebAuthnHandler{
+  storage:  storage,
+  logger:   logger,
+  webauthn: webauthn,
+ }
 }
 
 func (h *WebAuthnHandler) writeJSONResponse(w http.ResponseWriter, data interface{}) error {
-	w.Header().Set("Content-Type", "application/json")
-	if err := json.NewEncoder(w).Encode(data); err != nil {
-		h.logger.Error("Failed to encode response", err)
-		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
-		return err
-	}
-	return nil
+ w.Header().Set("Content-Type", "application/json")
+ if err := json.NewEncoder(w).Encode(data); err != nil {
+  h.logger.Error("Failed to encode response", err)
+  http.Error(w, "Failed to encode response", http.StatusInternalServerError)
+  return err
+ }
+ return nil
 }
 
 func (h *WebAuthnHandler) WebAuthnRegistrationBeginHandler(w http.ResponseWriter, r *http.Request) {
-	email, ok := r.Context().Value("email").(string)
-	if !ok {
-		h.logger.Error("Unable to retrieve email", nil)
-		http.Error(w, "Unable to retrieve email", http.StatusInternalServerError)
-		return
-	}
-	user, err := h.storage.GetUserByEmail(email)
-	if err != nil {
-		h.logger.Error("Failed to find user", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+ email, ok := r.Context().Value("email").(string)
+ if !ok {
+  h.logger.Error("Unable to retrieve email", nil)
+  http.Error(w, "Unable to retrieve email", http.StatusInternalServerError)
+  return
+ }
+ user, err := h.storage.GetUserByEmail(email)
+ if err != nil {
+  h.logger.Error("Failed to find user", err)
+  http.Error(w, "Invalid request body", http.StatusBadRequest)
+  return
+ }
 
-	options, session, err := h.webauthn.BeginRegistration(user)
-	if err != nil {
-		h.logger.Error("Unable to retrieve email", err)
-		http.Error(w, "Can't begin WebAuthn Registration", http.StatusInternalServerError)
+ options, session, err := h.webauthn.BeginRegistration(user)
+ if err != nil {
+  h.logger.Error("Unable to retrieve email", err)
+  http.Error(w, "Can't begin WebAuthn Registration", http.StatusInternalServerError)
 
-		return
-	}
+  return
+ }
 
-	// Make a session key and store the sessionData values
-	t, err := h.storage.GenSessionID()
-	if err != nil {
-		h.logger.Error("Can't generate session id: %s", err)
-	}
+ // Make a session key and store the sessionData values
+ t, err := h.storage.GenSessionID()
+ if err != nil {
+  h.logger.Error("Can't generate session id: %s", err)
+ }
 
-	h.storage.SaveSession(t, *session)
+ h.storage.SaveSession(t, *session)
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "sid",
-		Value:    t,
-		Path:     "api/passkey/registerStart",
-		MaxAge:   3600,
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode,
-	})
+ http.SetCookie(w, &http.Cookie{
+  Name:     "sid",
+  Value:    t,
+  Path:     "api/passkey/registerStart",
+  MaxAge:   3600,
+  Secure:   true,
+  HttpOnly: true,
+  SameSite: http.SameSiteLaxMode,
+ })
 
-	h.writeJSONResponse(w, options)
+ h.writeJSONResponse(w, options)
 }
 
 func (h *WebAuthnHandler) WebAuthnRegistrationEndHandler(w http.ResponseWriter, r *http.Request) {
-	email, ok := r.Context().Value("email").(string)
-	if !ok {
-		h.logger.Error("Unable to retrieve email", nil)
-		http.Error(w, "Unable to retrieve email", http.StatusInternalServerError)
-		return
-	}
+ email, ok := r.Context().Value("email").(string)
+ if !ok {
+  h.logger.Error("Unable to retrieve email", nil)
+  http.Error(w, "Unable to retrieve email", http.StatusInternalServerError)
+  return
+ }
 
-	// Get the session key from cookie
-	sid, err := r.Cookie("sid")
-	if err != nil {
-		h.logger.Error("Couldn't get the cookie for the session", err)
-	}
+ // Get the session key from cookie
+ sid, err := r.Cookie("sid")
+ if err != nil {
+  h.logger.Error("Couldn't get the cookie for the session", err)
+ }
 
-	// Get the session data
-	session, _ := h.storage.GetSession(sid.Value)
+ // Get the session data
+ session, _ := h.storage.GetSession(sid.Value)
 
-	user, err := h.storage.GetUserByEmail(email)
-	if err != nil {
-		h.logger.Error("Failed to find user", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+ user, err := h.storage.GetUserByEmail(email)
+ if err != nil {
+  h.logger.Error("Failed to find user", err)
+  http.Error(w, "Invalid request body", http.StatusBadRequest)
+  return
+ }
 
-	credential, err := h.webauthn.FinishRegistration(user, session, r)
-	if err != nil {
-		h.logger.Error("Coudln't finish the WebAuthn Registration", err)
-		// clean up sid cookie
-		http.SetCookie(w, &http.Cookie{
-			Name:  "sid",
-			Value: "",
-		})
-		http.Error(w, "Couldn't finish registration", http.StatusBadRequest)
-		return
-	}
+ credential, err := h.webauthn.FinishRegistration(user, session, r)
+ if err != nil {
+  h.logger.Error("Coudln't finish the WebAuthn Registration", err)
+  // clean up sid cookie
+  http.SetCookie(w, &http.Cookie{
+   Name:  "sid",
+   Value: "",
+  })
+  http.Error(w, "Couldn't finish registration", http.StatusBadRequest)
+  return
+ }
 
-	// Store the credential object
-	user.AddCredential(credential)
-	h.storage.SaveUser(*user)
-	// Delete the session data
-	h.storage.DeleteSession(sid.Value)
-	http.SetCookie(w, &http.Cookie{
-		Name:  "sid",
-		Value: "",
-	})
+ // Store the credential object
+ user.AddCredential(credential)
+ h.storage.SaveUser(*user)
+ // Delete the session data
+ h.storage.DeleteSession(sid.Value)
+ http.SetCookie(w, &http.Cookie{
+  Name:  "sid",
+  Value: "",
+ })
 
-	h.writeJSONResponse(w, "{'success': true}")
+ h.writeJSONResponse(w, "{'success': true}")
 
 }
 
 func (h *WebAuthnHandler) WebAuthnAuthenticationBeginHandler(w http.ResponseWriter, r *http.Request) {
-	type CollectionRequest struct {
-		Email string `json:"email"`
-	}
-	var req CollectionRequest
+ type CollectionRequest struct {
+  Email string `json:"email"`
+ }
+ var req CollectionRequest
 
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		h.logger.Error("Failed to decode collection request", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+ if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+  h.logger.Error("Failed to decode collection request", err)
+  http.Error(w, "Invalid request body", http.StatusBadRequest)
+  return
+ }
 
-	email := req.Email
+ email := req.Email
 
-	h.logger.Info("Finding user " + email)
+ h.logger.Info("Finding user " + email)
 
-	user, err := h.storage.GetUserByEmail(email) // Find the user
+ user, err := h.storage.GetUserByEmail(email) // Find the user
 
-	if err != nil {
-		h.logger.Error("Failed to find user", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+ if err != nil {
+  h.logger.Error("Failed to find user", err)
+  http.Error(w, "Invalid request body", http.StatusBadRequest)
+  return
+ }
 
-	options, session, err := h.webauthn.BeginLogin(user)
-	if err != nil {
-		h.logger.Error("Coudln't start a login", err)
-		http.Error(w, "User not found", http.StatusNotFound)
-		return
-	}
+ options, session, err := h.webauthn.BeginLogin(user)
+ if err != nil {
+  h.logger.Error("Coudln't start a login", err)
+  http.Error(w, "User not found", http.StatusNotFound)
+  return
+ }
 
-	// Make a session key and store the sessionData values
-	t, err := h.storage.GenSessionID()
-	if err != nil {
-		h.logger.Error("Coudln't create a session ID", err)
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}
-	h.storage.SaveSession(t, *session)
+ // Make a session key and store the sessionData values
+ t, err := h.storage.GenSessionID()
+ if err != nil {
+  h.logger.Error("Coudln't create a session ID", err)
+  http.Error(w, "Bad request", http.StatusBadRequest)
+  return
+ }
+ h.storage.SaveSession(t, *session)
 
-	http.SetCookie(w, &http.Cookie{
-		Name:     "sid",
-		Value:    t,
-		Path:     "api/passkey/loginStart",
-		MaxAge:   3600,
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode, // TODO: SameSiteStrictMode maybe?
-	})
+ http.SetCookie(w, &http.Cookie{
+  Name:     "sid",
+  Value:    t,
+  Path:     "api/passkey/loginStart",
+  MaxAge:   3600,
+  Secure:   true,
+  HttpOnly: true,
+  SameSite: http.SameSiteLaxMode, // TODO: SameSiteStrictMode maybe?
+ })
 
-	h.writeJSONResponse(w, options)
+ h.writeJSONResponse(w, options)
 }
 
 func (h *WebAuthnHandler) WebAuthnAuthenticationEndHandler(w http.ResponseWriter, r *http.Request) {
-	// Get the session key from cookie
-	sid, err := r.Cookie("sid")
-	if err != nil {
-		h.logger.Error("Coudln't get a session", err)
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}
-	// Get the session data stored from the function above
-	session, _ := h.storage.GetSession(sid.Value)
+ // Get the session key from cookie
+ sid, err := r.Cookie("sid")
+ if err != nil {
+  h.logger.Error("Coudln't get a session", err)
+  http.Error(w, "Bad request", http.StatusBadRequest)
+  return
+ }
+ // Get the session data stored from the function above
+ session, _ := h.storage.GetSession(sid.Value)
 
-	userID, err := strconv.Atoi(string(session.UserID)) // Convert []byte to int
-	if err != nil {
-		h.logger.Error("Failed to convert UserID to int", err)
-		http.Error(w, "Invalid session data", http.StatusBadRequest)
-		return
-	}
-	user, err := h.storage.GetUserByID(userID) // Get the user
-	if err != nil {
-		h.logger.Error("Failed to find user", err)
-		http.Error(w, "Invalid request body", http.StatusBadRequest)
-		return
-	}
+ userID, err := strconv.Atoi(string(session.UserID)) // Convert []byte to int
+ if err != nil {
+  h.logger.Error("Failed to convert UserID to int", err)
+  http.Error(w, "Invalid session data", http.StatusBadRequest)
+  return
+ }
+ user, err := h.storage.GetUserByID(userID) // Get the user
+ if err != nil {
+  h.logger.Error("Failed to find user", err)
+  http.Error(w, "Invalid request body", http.StatusBadRequest)
+  return
+ }
 
-	credential, err := h.webauthn.FinishLogin(user, session, r)
-	if err != nil {
-		h.logger.Error("Coudln't finish login", err)
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}
+ credential, err := h.webauthn.FinishLogin(user, session, r)
+ if err != nil {
+  h.logger.Error("Coudln't finish login", err)
+  http.Error(w, "Bad request", http.StatusBadRequest)
+  return
+ }
 
-	// Handle credential.Authenticator.CloneWarning
-	if credential.Authenticator.CloneWarning {
-		h.logger.Error("Couldn't finish login", err)
-		http.Error(w, "Bad request", http.StatusBadRequest)
-		return
-	}
+ // Handle credential.Authenticator.CloneWarning
+ if credential.Authenticator.CloneWarning {
+  h.logger.Error("Couldn't finish login", err)
+  http.Error(w, "Bad request", http.StatusBadRequest)
+  return
+ }
 
-	// If login was successful
-	user.UpdateCredential(credential)
-	h.storage.SaveUser(*user)
+ // If login was successful
+ user.UpdateCredential(credential)
+ h.storage.SaveUser(*user)
 
-	// Delete the session data
-	h.storage.DeleteSession(sid.Value)
-	http.SetCookie(w, &http.Cookie{
-		Name:  "sid",
-		Value: "",
-	})
+ // Delete the session data
+ h.storage.DeleteSession(sid.Value)
+ http.SetCookie(w, &http.Cookie{
+  Name:  "sid",
+  Value: "",
+ })
 
-	// Add the new session cookie
-	t, err := h.storage.GenSessionID()
-	if err != nil {
-		h.logger.Error("Couldn't generate session", err)
-		http.Error(w, "Bad request", http.StatusBadRequest)
-	}
+ // Add the new session cookie
+ t, err := h.storage.GenSessionID()
+ if err != nil {
+  h.logger.Error("Couldn't generate session", err)
+  http.Error(w, "Bad request", http.StatusBadRequest)
+ }
 
-	h.storage.SaveSession(t, webauthn.SessionData{
-		Expires: time.Now().Add(time.Hour),
-	})
-	http.SetCookie(w, &http.Cookie{
-		Name:     "sid",
-		Value:    t,
-		Path:     "/",
-		MaxAge:   3600,
-		Secure:   true,
-		HttpOnly: true,
-		SameSite: http.SameSiteLaxMode, // TODO: SameSiteStrictMode maybe?
-	})
+ h.storage.SaveSession(t, webauthn.SessionData{
+  Expires: time.Now().Add(time.Hour),
+ })
+ http.SetCookie(w, &http.Cookie{
+  Name:     "sid",
+  Value:    t,
+  Path:     "/",
+  MaxAge:   3600,
+  Secure:   true,
+  HttpOnly: true,
+  SameSite: http.SameSiteLaxMode, // TODO: SameSiteStrictMode maybe?
+ })
 
-	type PasskeyResponse struct {
-		Success bool   `json:"success"`
-		JWT     string `json:"jwt"`
-	}
-	h.logger.Info("Sending JWT for " + user.Name)
-	// Return success response
-	response := PasskeyResponse{
-		Success: true,
-		JWT:     token.CreateJWT(models.User{Email: user.Name}, *h.logger),
-	}
+ type PasskeyResponse struct {
+  Success bool   `json:"success"`
+  JWT     string `json:"jwt"`
+ }
+ h.logger.Info("Sending JWT for " + user.Name)
+ // Return success response
+ response := PasskeyResponse{
+  Success: true,
+  JWT:     token.CreateJWT(models.User{Email: user.Name}, *h.logger),
+ }
 
-	h.writeJSONResponse(w, response)
+ h.writeJSONResponse(w, response)
 }
 
 ```
@@ -3333,31 +3336,31 @@ func (h *WebAuthnHandler) WebAuthnAuthenticationEndHandler(w http.ResponseWriter
 Update `main.go` to support our new handlers
 
 ```go
-	// WebAuthn Handlers
-	wconfig := &webauthn.Config{
-		RPDisplayName: "ReelingIt",
-		RPID:          "localhost",
-		RPOrigins:     []string{"http://localhost:8080"},
-	}
+ // WebAuthn Handlers
+ wconfig := &webauthn.Config{
+  RPDisplayName: "ReelingIt",
+  RPID:          "localhost",
+  RPOrigins:     []string{"http://localhost:8080"},
+ }
 
-	var webAuthnManager *webauthn.WebAuthn
+ var webAuthnManager *webauthn.WebAuthn
 
-	if webAuthnManager, err = webauthn.New(wconfig); err != nil {
-		logInstance.Error("Error creating WebAuthn", err)
-	}
+ if webAuthnManager, err = webauthn.New(wconfig); err != nil {
+  logInstance.Error("Error creating WebAuthn", err)
+ }
 
-	if err != nil {
-		logInstance.Error("Error initialing Passkey engine", err)
-	}
+ if err != nil {
+  logInstance.Error("Error initialing Passkey engine", err)
+ }
 
-	passkeyRepo := data.NewPasskeyRepository(db, *logInstance)
-	webAuthnHandler := handlers.NewWebAuthnHandler(passkeyRepo, logInstance, webAuthnManager)
-	http.Handle("/api/passkey/registration-begin",
-		accountHandler.AuthMiddleware(http.HandlerFunc(webAuthnHandler.WebAuthnRegistrationBeginHandler)))
-	http.Handle("/api/passkey/registration-end",
-		accountHandler.AuthMiddleware(http.HandlerFunc(webAuthnHandler.WebAuthnRegistrationEndHandler)))
-	http.HandleFunc("/api/passkey/authentication-begin", webAuthnHandler.WebAuthnAuthenticationBeginHandler)
-	http.HandleFunc("/api/passkey/authentication-end", webAuthnHandler.WebAuthnAuthenticationEndHandler)
+ passkeyRepo := data.NewPasskeyRepository(db, *logInstance)
+ webAuthnHandler := handlers.NewWebAuthnHandler(passkeyRepo, logInstance, webAuthnManager)
+ http.Handle("/api/passkey/registration-begin",
+  accountHandler.AuthMiddleware(http.HandlerFunc(webAuthnHandler.WebAuthnRegistrationBeginHandler)))
+ http.Handle("/api/passkey/registration-end",
+  accountHandler.AuthMiddleware(http.HandlerFunc(webAuthnHandler.WebAuthnRegistrationEndHandler)))
+ http.HandleFunc("/api/passkey/authentication-begin", webAuthnHandler.WebAuthnAuthenticationBeginHandler)
+ http.HandleFunc("/api/passkey/authentication-end", webAuthnHandler.WebAuthnAuthenticationEndHandler)
 
 ```
 
@@ -3371,7 +3374,7 @@ In our HTML add the SimpleWebAuthn library script before app.js loading:
 
 ### I7 - Update the UI
 
-Change in *index.html* the template-account 
+Change in *index.html* the template-account
 
 ```html
  <template id="template-account">
@@ -3526,93 +3529,93 @@ Create *handlers/ssr_handler.go*
 package handlers
 
 import (
-	"errors"
-	"fmt"
-	"html"
-	"io"
-	"log"
-	"net/http"
-	"os"
-	"strconv"
-	"strings"
+ "errors"
+ "fmt"
+ "html"
+ "io"
+ "log"
+ "net/http"
+ "os"
+ "strconv"
+ "strings"
 
-	"frontendmasters.com/movies/data"
-	"frontendmasters.com/movies/logger"
-	"frontendmasters.com/movies/models"
+ "frontendmasters.com/movies/data"
+ "frontendmasters.com/movies/logger"
+ "frontendmasters.com/movies/models"
 )
 
 // In main.go, add this new handler function before the main function
 func SSRMovieDetailsHandler(movieRepo *data.MovieRepository, logInstance *logger.Logger) http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		// Extract movie ID from URL
-		pathParts := strings.Split(r.URL.Path, "/")
-		if len(pathParts) < 3 {
-			http.Error(w, "Movie ID required", http.StatusBadRequest)
-			return
-		}
+ return func(w http.ResponseWriter, r *http.Request) {
+  // Extract movie ID from URL
+  pathParts := strings.Split(r.URL.Path, "/")
+  if len(pathParts) < 3 {
+   http.Error(w, "Movie ID required", http.StatusBadRequest)
+   return
+  }
 
-		id, err := strconv.Atoi(pathParts[2])
-		if err != nil {
-			http.Error(w, "Invalid movie ID", http.StatusBadRequest)
-			return
-		}
+  id, err := strconv.Atoi(pathParts[2])
+  if err != nil {
+   http.Error(w, "Invalid movie ID", http.StatusBadRequest)
+   return
+  }
 
-		// Get movie from repository
-		movie, err := movieRepo.GetMovieByID(id)
-		if err != nil {
-			if errors.Is(err, data.ErrMovieNotFound) {
-				http.Error(w, "Movie not found", http.StatusNotFound)
-			} else {
-				logInstance.Error("Error fetching movie", err)
-				http.Error(w, "Internal server error", http.StatusInternalServerError)
-			}
-			return
-		}
+  // Get movie from repository
+  movie, err := movieRepo.GetMovieByID(id)
+  if err != nil {
+   if errors.Is(err, data.ErrMovieNotFound) {
+    http.Error(w, "Movie not found", http.StatusNotFound)
+   } else {
+    logInstance.Error("Error fetching movie", err)
+    http.Error(w, "Internal server error", http.StatusInternalServerError)
+   }
+   return
+  }
 
-		// Serve the HTML with movie data
-		w.Header().Set("Content-Type", "text/html")
-		err = renderMovieDetails(w, movie)
-		if err != nil {
-			logInstance.Error("Error rendering movie details", err)
-			http.Error(w, "Internal server error", http.StatusInternalServerError)
-		}
-	}
+  // Serve the HTML with movie data
+  w.Header().Set("Content-Type", "text/html")
+  err = renderMovieDetails(w, movie)
+  if err != nil {
+   logInstance.Error("Error rendering movie details", err)
+   http.Error(w, "Internal server error", http.StatusInternalServerError)
+  }
+ }
 }
 
 // Add this function to render the HTML
 func renderMovieDetails(w io.Writer, movie models.Movie) error {
-	// Read the index.html file
-	htmlContent, err := os.ReadFile("./public/index.html")
-	if err != nil {
-		log.Fatal(err)
-		return err
-	}
+ // Read the index.html file
+ htmlContent, err := os.ReadFile("./public/index.html")
+ if err != nil {
+  log.Fatal(err)
+  return err
+ }
 
-	// Convert movie data to HTML
-	genresHTML := ""
-	for _, genre := range movie.Genres {
-		genresHTML += fmt.Sprintf(`<li>%s</li>`, html.EscapeString(genre.Name))
-	}
+ // Convert movie data to HTML
+ genresHTML := ""
+ for _, genre := range movie.Genres {
+  genresHTML += fmt.Sprintf(`<li>%s</li>`, html.EscapeString(genre.Name))
+ }
 
-	castHTML := ""
-	for _, actor := range movie.Casting {
-		imageURL := "/images/generic_actor.jpg"
-		if actor.ImageURL != nil {
-			imageURL = *actor.ImageURL
-		}
-		castHTML += fmt.Sprintf(`
+ castHTML := ""
+ for _, actor := range movie.Casting {
+  imageURL := "/images/generic_actor.jpg"
+  if actor.ImageURL != nil {
+   imageURL = *actor.ImageURL
+  }
+  castHTML += fmt.Sprintf(`
             <li>
                 <img src="%s" alt="Picture of %s">
                 <p>%s %s</p>
             </li>`,
-			html.EscapeString(imageURL),
-			html.EscapeString(actor.LastName),
-			html.EscapeString(actor.FirstName),
-			html.EscapeString(actor.LastName))
-	}
+   html.EscapeString(imageURL),
+   html.EscapeString(actor.LastName),
+   html.EscapeString(actor.FirstName),
+   html.EscapeString(actor.LastName))
+ }
 
-	// Replace the main content
-	mainContent := fmt.Sprintf(`
+ // Replace the main content
+ mainContent := fmt.Sprintf(`
         <main>
             <article id="movie">
                 <h2>%s</h2>
@@ -3638,25 +3641,25 @@ func renderMovieDetails(w io.Writer, movie models.Movie) error {
                 <ul id="cast">%s</ul>
             </article>
         </main>`,
-		html.EscapeString(movie.Title),
-		html.EscapeString(*movie.Tagline),
-		html.EscapeString(*movie.PosterURL),
-		html.EscapeString(*movie.TrailerURL),
-		movie.ReleaseYear,
-		*movie.Score,
-		html.EscapeString(*movie.Language),
-		genresHTML,
-		html.EscapeString(*movie.Overview),
-		castHTML)
+  html.EscapeString(movie.Title),
+  html.EscapeString(*movie.Tagline),
+  html.EscapeString(*movie.PosterURL),
+  html.EscapeString(*movie.TrailerURL),
+  movie.ReleaseYear,
+  *movie.Score,
+  html.EscapeString(*movie.Language),
+  genresHTML,
+  html.EscapeString(*movie.Overview),
+  castHTML)
 
-	// Replace the main tag content in the HTML
-	htmlStr := string(htmlContent)
-	htmlStr = strings.Replace(htmlStr, "<main></main>", mainContent, 1)
-	fmt.Println(htmlStr)
+ // Replace the main tag content in the HTML
+ htmlStr := string(htmlContent)
+ htmlStr = strings.Replace(htmlStr, "<main></main>", mainContent, 1)
+ fmt.Println(htmlStr)
 
-	// Write the response
-	_, err = w.Write([]byte(htmlStr))
-	return err
+ // Write the response
+ _, err = w.Write([]byte(htmlStr))
+ return err
 }
 ```
 
@@ -3666,11 +3669,11 @@ At *main.go* replace the current `/movies/` handler with:
 
 ```go
 http.HandleFunc("/movies/", func(w http.ResponseWriter, r *http.Request) {
-	if strings.Count(r.URL.Path, "/") == 2 && strings.HasPrefix(r.URL.Path, "/movies/") {
-		handlers.SSRMovieDetailsHandler(movieRepo, logInstance)(w, r)
-	} else {
-		catchAllHandler(w, r)
-	}
+ if strings.Count(r.URL.Path, "/") == 2 && strings.HasPrefix(r.URL.Path, "/movies/") {
+  handlers.SSRMovieDetailsHandler(movieRepo, logInstance)(w, r)
+ } else {
+  catchAllHandler(w, r)
+ }
 })
 ```
 
